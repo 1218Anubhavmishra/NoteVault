@@ -8,5 +8,10 @@
   },
   "android": {
     "adjustMarginsForEdgeToEdge": "auto"
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#f4efe4",
+    "limitsNavigationsToAppBoundDomains": true
   }
 }

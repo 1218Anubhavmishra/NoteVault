@@ -123,7 +123,7 @@ Changes to the backend are made and pushed in the **web project**; NoteVault onl
 ## 11) Open reminders
 
 - **Login screenshot**: not captured yet (the app stayed logged in). Take it the next time the login screen appears and add it to section 1.1.
-- **iOS backend access (before first iOS test)**: the iOS app's origin is `capacitor://localhost`, which the backend CORS allowlist does not include yet (add it in the voiceVault repo, or via `VOICEVAULT_CORS_ORIGINS` on Render). iOS WKWebView may also block the cross-site login cookie; if login fails on iPhone, enable Capacitor's native HTTP (`CapacitorHttp`) or App-Bound Domains.
+- **iOS backend access**: done 2026-09-29 — backend CORS allows `capacitor://localhost` (web commit `6cd6b2c`); iOS uses App-Bound Domains (`WKAppBoundDomains` for voicevault.xyz + `limitsNavigationsToAppBoundDomains`) so WKWebView keeps the login cookie. **Not yet verified on iOS** — test login/notes/audio in Codemagic App Preview or a simulator; if login still fails, fall back to Capacitor native HTTP (`CapacitorHttp`).
 - **Panel close (×) buttons**: work with a mouse on the emulator, but automated taps did not register. Test on a physical Android phone before release.
 
 ## 12) Speeding up first search

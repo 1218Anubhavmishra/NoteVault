@@ -1,7 +1,8 @@
 # Codemagic CI for NoteVault (iOS). Builds only start manually from the Codemagic UI (no push triggers),
 # so free-tier build minutes aren't spent on every commit.
 workflows:
-  # Unsigned simulator build: no Apple Developer account needed. Verifies the iOS project compiles.
+  # Unsigned simulator build: no Apple Developer account needed. Universal (arm64 + x86_64) so the
+  # zipped App.app runs in Xcode's Simulator on both Apple-silicon and Intel Macs.
   ios-simulator-build:
     name: iOS simulator build (unsigned)
     instance_type: mac_mini_m2
@@ -25,6 +26,8 @@ workflows:
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build/ios \
+            ARCHS="arm64 x86_64" \
+            ONLY_ACTIVE_ARCH=NO \
             CODE_SIGNING_ALLOWED=NO \
             build
       - name: Zip simulator app
