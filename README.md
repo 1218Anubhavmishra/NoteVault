@@ -23,6 +23,24 @@ Requires JDK 22, Android SDK (API 36), Node.js 20+. Run `npm install` once.
 
 Release signing needs `android-signing\notevault-upload.jks` + `keystore.properties`, which are **not** in this repo (kept offline).
 
+## iOS (Capacitor, Swift Package Manager)
+
+The Xcode project is in `ios/App` (bundle id `xyz.voicevault.app`). Building requires macOS + Xcode (or a cloud Mac such as Codemagic):
+
+```bash
+npm ci
+npx cap sync ios        # copies public/ into the iOS project (ios/App/App/public is git-ignored)
+open ios/App/App.xcodeproj
+```
+
+## Desktop (Electron)
+
+```powershell
+npm run desktop         # opens NoteVault in a desktop window
+```
+
+`electron/main.cjs` serves `public/` at `https://localhost` (the same origin as the Android app), so it talks to the live backend with no server changes. Packaging into an installer (e.g. electron-builder) is not set up yet.
+
 ---
 
 # voiceVault (web app, original README)

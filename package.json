@@ -2,7 +2,7 @@
   "name": "notevault",
   "version": "0.1.0",
   "private": true,
-  "description": "NoteVault: Android app version of voiceVault (Capacitor). Record audio notes and search across them.",
+  "description": "NoteVault: app version of voiceVault (Android/iOS via Capacitor, desktop via Electron). Record audio notes and search across them.",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -12,11 +12,14 @@
     "start": "node server/index.js",
     "cap:sync": "npx cap sync android",
     "android:build": "npx cap sync android && cd android && .\\gradlew.bat assembleDebug",
-    "android:install": "npx cap sync android && cd android && .\\gradlew.bat installDebug"
+    "android:install": "npx cap sync android && cd android && .\\gradlew.bat installDebug",
+    "cap:sync:ios": "npx cap sync ios",
+    "desktop": "electron electron/main.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
     "@capacitor/core": "^7.2.0",
+    "@capacitor/ios": "^7.6.9",
     "@pinecone-database/pinecone": "^7.2.0",
     "@xenova/transformers": "^2.17.2",
     "bcryptjs": "^3.0.2",
@@ -32,6 +35,7 @@
   "devDependencies": {
     "@capacitor/cli": "^7.2.0",
     "better-sqlite3": "^12.9.0",
+    "electron": "^44.4.5",
     "playwright": "^1.59.1"
   }
 }
