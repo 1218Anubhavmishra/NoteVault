@@ -1,0 +1,12 @@
+{
+  "appId": "xyz.voicevault.app",
+  "appName": "NoteVault",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": ["api.voicevault.xyz", "*.voicevault.xyz"]
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "auto"
+  }
+}

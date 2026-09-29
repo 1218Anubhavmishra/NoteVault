@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4efe4" />
+    <meta name="color-scheme" content="light" />
+    <title>NoteVault</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <div class="brand">NoteVault</div>
+          <div class="subtle">Record • Replay • Store • Search across all notes</div>
+        </div>
+        <div class="topbarActions">
+          <div class="status" id="status"></div>
+          <div class="profileWrap" id="profileWrap" hidden>
+            <button
+              type="button"
+              class="profileAvatarBtn"
+              id="btnProfileMenu"
+              aria-label="Account menu"
+              aria-expanded="false"
+              aria-haspopup="true"
+            >
+              <span class="profileAvatarFallback" id="profileAvatarFallback" aria-hidden="true"></span>
+              <img id="profileAvatarImg" class="profileAvatarImg" alt="" width="40" height="40" hidden />
+            </button>
+            <div id="profileDropdown" class="profileDropdown" role="menu" hidden>
+              <button type="button" class="profileDropdownItem" id="menuOpenProfile" role="menuitem">Profile</button>
+              <button type="button" class="profileDropdownItem profileDropdownDanger" id="menuLogout" role="menuitem">
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="grid mainGrid--dock" id="mainGrid">
+        <div class="rightStack" id="rightStack">
+          <section class="librarySurface" id="libraryCard">
+            <div id="results" class="results"></div>
+          </section>
+
+          <section class="card vvDockPanel" id="searchCard" hidden>
+            <div class="cardHeaderRow">
+              <div class="searchHeaderRow">
+                <h2 style="margin: 0">Search</h2>
+                <div class="row searchQueryRow searchQueryRow--header">
+                  <input
+                    id="q"
+                    class="input searchQueryInput"
+                    placeholder="Transcript of your search audio will appear here…"
+                  />
+                  <button id="btnRecordQuery" class="btn primary btnIconOnly" type="button" aria-label="Record search" title="Record search">🎤</button>
+                  <button id="btnStopQuery" class="btn vvIconBtn" type="button" disabled hidden aria-label="Stop recording" title="Stop">
+                    <svg class="vvIcon vvIcon--stop" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
+                  </button>
+                  <button id="btnSearch" class="btn btnIconOnly" type="button" disabled hidden aria-label="Search" title="Search">🔍</button>
+                  <span class="pill timerPill" id="queryTimer" hidden>00:00</span>
+                </div>
+              </div>
+              <button id="btnSearchClose" class="btn" type="button" aria-label="Close Search">×</button>
+            </div>
+            <div id="searchBody">
+              <div class="row">
+                <audio id="previewQuery" controls class="audio" hidden></audio>
+              </div>
+            </div>
+          </section>
+
+          <section class="card miniCard vvDockPanel" id="processCard" hidden>
+            <div class="cardHeaderRow">
+              <h2 style="margin: 0; font-size: 14px">Processes</h2>
+              <button id="btnProcessesClose" class="btn" type="button" aria-label="Close Processes">×</button>
+            </div>
+            <div id="procBody">
+              <div class="jobsRow">
+                <span class="pill" id="jobsPausedPill" hidden>Paused</span>
+                <button id="btnIngestPause" class="btn err" type="button">Pause</button>
+                <button id="btnIngestResume" class="btn" type="button" hidden>Resume</button>
+              </div>
+              <div class="jobsSummary" id="jobsSummary" hidden></div>
+              <div class="jobsFilters" id="jobsFilters" hidden>
+                <select id="jobsStatusFilter" class="jobsSelect">
+                  <option value="">All statuses</option>
+                  <option value="queued">Queued</option>
+                  <option value="running">Running</option>
+                  <option value="done">Done</option>
+                  <option value="error">Error</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <label class="label" style="margin: 0; display: flex; align-items: center; gap: 10px">
+                  <span style="font-size: 12px; color: rgba(0, 0, 0, 0.72); font-weight: 750">Backoff base (sec)</span>
+                  <input
+                    id="jobsBackoffBaseSec"
+                    class="input"
+                    style="width: 96px; padding: 8px 10px"
+                    type="number"
+                    min="1"
+                    max="60"
+                    value="5"
+                  />
+                </label>
+                <label class="label" style="margin: 0; display: flex; align-items: center; gap: 10px">
+                  <span style="font-size: 12px; color: rgba(0, 0, 0, 0.72); font-weight: 750">Backoff max (sec)</span>
+                  <input
+                    id="jobsBackoffMaxSec"
+                    class="input"
+                    style="width: 110px; padding: 8px 10px"
+                    type="number"
+                    min="5"
+                    max="3600"
+                    value="300"
+                  />
+                </label>
+                <label class="label" style="margin: 0; display: flex; align-items: center; gap: 10px">
+                  <span style="font-size: 12px; color: rgba(0, 0, 0, 0.72); font-weight: 750">Max parallel</span>
+                  <input
+                    id="jobsMaxParallel"
+                    class="input"
+                    style="width: 90px; padding: 8px 10px"
+                    type="number"
+                    min="1"
+                    max="6"
+                    value="1"
+                  />
+                </label>
+                <button id="btnJobsApply" class="btn vvIconBtn" type="button" aria-label="Apply processing settings" title="Apply settings">
+                  <svg class="vvIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path
+                      fill="currentColor"
+                      fill-rule="evenodd"
+                      d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+                <button id="btnJobsRetryAll" class="btn" type="button">Retry all errors</button>
+                <button id="btnJobsUnlockNow" class="btn err" type="button">Unlock stale</button>
+              </div>
+              <div class="jobsList" id="jobsList" hidden></div>
+            </div>
+          </section>
+
+          <section class="card vvDockPanel" id="newNoteCard" hidden>
+            <div class="cardHeaderRow">
+              <h2 style="margin:0">New note</h2>
+              <button id="btnNewNoteToggle" class="btn" type="button" aria-label="Close New note">×</button>
+            </div>
+
+            <div id="newNoteBody">
+
+          <label class="label">
+            <span class="newNoteTitleRow">
+              <span class="newNoteTitleLabel">Title <span class="newNoteTitleHint">( Editable )</span></span>
+              <input
+                id="title"
+                class="input newNoteTitleInput"
+                placeholder="Auto-generated from transcript; edit anytime."
+              />
+            </span>
+          </label>
+
+          <div class="row">
+            <button id="btnRecordNote" class="btn primary vvIconBtn" aria-label="Record note">
+              <svg class="vvIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0a1 1 0 1 0-2 0a7 7 0 0 0 6 6.93V20H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-2.07A7 7 0 0 0 19 11a1 1 0 1 0-2 0Z"
+                />
+              </svg>
+            </button>
+            <button id="btnStopNote" class="btn vvIconBtn" type="button" disabled hidden aria-label="Stop recording" title="Stop">
+              <svg class="vvIcon vvIcon--stop" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
+            </button>
+            <span class="pill timerPill" id="noteTimer" hidden>00:00</span>
+            <span class="pill timerPill" id="noteDetectedLang" hidden>Lang: —</span>
+            <span id="noteLanguageWrap" hidden style="display:inline-flex; align-items:center; gap:8px">
+              <select
+                id="noteLanguage"
+                class="input noteLanguageSelect"
+                aria-label="Language"
+                style="background: rgba(255, 255, 255, 0.95); color: rgba(0, 0, 0, 0.92); border-color: rgba(255, 255, 255, 0.75)"
+              >
+                <option value="">Auto-detect</option>
+                <option value="en">English (en)</option>
+                <option value="hi">Hindi (hi)</option>
+                <option value="es">Spanish (es)</option>
+                <option value="fr">French (fr)</option>
+                <option value="de">German (de)</option>
+                <option value="it">Italian (it)</option>
+                <option value="pt">Portuguese (pt)</option>
+                <option value="ja">Japanese (ja)</option>
+                <option value="ko">Korean (ko)</option>
+                <option value="zh">Chinese (zh)</option>
+              </select>
+              <audio id="previewNote" controls class="audio notePreviewAudioInline" hidden></audio>
+            </span>
+          </div>
+
+          <label class="label">
+            Choose audio file (optional)
+            <input id="uploadNote" class="input" type="file" accept="audio/*" hidden />
+            <div class="row" style="margin-top:8px">
+              <button id="uploadNoteBtn" class="btn vvIconBtn" aria-label="Upload audio file">
+                <svg class="vvIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    fill="currentColor"
+                    d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4.01 4a1 1 0 0 1-1.38 0l-4.01-4a1 1 0 1 1 1.4-1.42L11 12.59V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"
+                  />
+                </svg>
+              </button>
+              <span id="uploadNoteName" class="pill" style="max-width:65ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+                No file selected
+              </span>
+            </div>
+          </label>
+
+          <label class="label" id="liveTranscriptWrap" hidden>
+            <span class="liveTxHeaderRow" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 4px">
+              <span>Transcript preview (read-only until full preview is generated)</span>
+              <span id="liveTxLangStatus" class="pill" hidden>Detecting language…</span>
+              <span id="liveTxStatus" class="liveTxStatusText" hidden>
+                <span id="liveTxPhaseLabel" class="liveTxProcessingLabel">Live Transcription</span>
+                <span
+                  id="liveTxTimeLeft"
+                  class="noteProcessingTime"
+                  data-processing-since=""
+                  data-estimated-total-ms=""
+                  title="Approximate percent of this transcription step remaining"
+                  >—</span
+                >
+              </span>
+            </span>
+            <textarea id="liveTranscript" class="textarea" rows="6"></textarea>
+          </label>
+
+          <p class="newNoteTitleHint" style="margin: 0 0 8px">
+            Transcription runs on the server with <strong>ElevenLabs STT</strong>.
+          </p>
+
+          <div class="row">
+            <button id="btnSaveNote" class="btn primary vvIconBtn" type="button" disabled hidden aria-label="Save note" title="Save note">
+              <svg class="vvIcon vvIcon--save" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4ZM5 19V9h14v10H5Zm8-4h4v-4h-4v4ZM7 7h8v6H7V7Z"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div id="newNoteProcessingRow" class="row" hidden style="margin-top: 10px; align-items: center">
+            <span class="noteStatus"><span id="newNoteProcLabel">Processing</span>
+              <span id="newNoteProcessingTime" class="noteProcessingTime" data-note-id="" data-processing-since="" data-estimated-total-ms="" title="Approximate percent of server transcription remaining for this note.">—</span></span>
+          </div>
+
+          <!-- previewNote relocated beside language dropdown -->
+
+            </div>
+          </section>
+
+          <section class="card miniCard vvDockPanel" id="helpCard" hidden>
+            <div class="cardHeaderRow">
+              <h2 style="margin:0; font-size:14px">Help</h2>
+              <button id="btnHelpClose" class="btn" type="button" aria-label="Close Help">×</button>
+            </div>
+            <div id="helpBody">
+              <div class="row helpButtonsRow" style="margin-bottom:0">
+                <button class="btn" id="aboutToggle" type="button">App hint</button>
+                <button class="btn" id="uiStepsToggle" type="button">UI steps</button>
+              </div>
+              <div id="aboutBox" style="margin-top:10px" hidden></div>
+              <div id="uiStepsBox" style="margin-top:10px" hidden></div>
+            </div>
+          </section>
+
+          <div class="floatDock" id="floatDock" role="toolbar" aria-label="Quick actions">
+            <div class="floatDockLeading">
+              <button type="button" class="btn floatDockBtn" id="btnFloatSearch" title="Open Search">
+                Search
+              </button>
+              <button type="button" class="btn floatDockBtn" id="btnFloatNewNote" title="Toggle New note">Add New</button>
+            </div>
+            <div class="floatDockTrailing">
+              <button type="button" class="btn floatDockBtn floatDockBtnProcesses" id="btnFloatProcesses" title="Open Processes">
+                Processes
+              </button>
+              <button type="button" class="btn floatDockBtn floatDockBtnHelp" id="btnFloatHelp" title="Toggle Help">Help</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="profileOverlay" class="overlay" hidden>
+      <div class="dialog profileDialog" style="max-width: 440px">
+        <div class="profileDialogHeader">
+          <div style="font-weight: 850; font-size: 17px">Profile</div>
+          <button id="btnProfileClose" class="btn vvIconBtn" type="button" aria-label="Close profile" title="Close">
+            <svg class="vvIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+        <div id="profileError" class="note err" style="margin: 10px 0 0; display: none"></div>
+        <div id="profileViewMode" class="profileBody">
+          <div class="profileHero">
+            <div class="profileHeroAvatar">
+              <span class="profileAvatarFallback profileAvatarFallback--large" id="profileModalFallback"></span>
+              <img id="profileModalImg" class="profileModalImg" alt="" width="96" height="96" hidden />
+            </div>
+            <div class="profileHeroText">
+              <div id="profileViewName" class="profileViewName">—</div>
+              <div id="profileViewEmail" class="profileViewEmail subtle">—</div>
+              <div class="profilePwdHint subtle">Password: <span id="profilePwdMasked">••••••••</span></div>
+            </div>
+          </div>
+          <div class="row" style="justify-content: flex-end; gap: 10px; margin-top: 14px">
+            <button type="button" class="btn primary" id="btnProfileEdit">Edit</button>
+          </div>
+        </div>
+        <div id="profileEditMode" class="profileBody" hidden>
+          <div class="profileEditHero">
+            <div class="profileHeroAvatar">
+              <span class="profileAvatarFallback profileAvatarFallback--large" id="profileEditFallback"></span>
+              <img id="profileEditImg" class="profileModalImg" alt="" width="96" height="96" hidden />
+            </div>
+            <input
+              id="profileEditAvatar"
+              class="profileEditAvatarInput"
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              tabindex="-1"
+              aria-hidden="true"
+            />
+            <button type="button" class="btn" id="btnProfileEditPhoto" aria-label="Choose profile photo">
+              Edit photo
+            </button>
+          </div>
+          <label class="label" style="margin: 0">
+            Display name
+            <input id="profileEditName" class="input" type="text" autocomplete="nickname" />
+          </label>
+          <label class="label" style="margin: 0">
+            Email
+            <input id="profileEditEmail" class="input" type="email" autocomplete="email" />
+          </label>
+          <label class="label" style="margin: 0">
+            New password <span class="subtle">(optional)</span>
+            <input id="profileEditNewPass" class="input" type="password" autocomplete="new-password" />
+          </label>
+          <label class="label" style="margin: 0">
+            Current password <span class="subtle">(required to change email or password)</span>
+            <input id="profileEditCurPass" class="input" type="password" autocomplete="current-password" />
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap">
+            <button type="button" class="btn" id="btnProfileCancel">Cancel</button>
+            <button type="button" class="btn primary" id="btnProfileSave">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="jobDetailsOverlay" class="overlay" hidden>
+      <div class="dialog">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px">
+          <div style="font-weight:850">Job details</div>
+          <button id="btnJobDetailsClose" class="btn vvIconBtn" type="button" aria-label="Close" title="Close">
+            <svg class="vvIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+        <pre id="jobDetailsPre" class="preBox"></pre>
+        <div style="display:flex; gap:10px; justify-content:flex-end">
+          <button id="btnJobDetailsCopy" class="btn" type="button">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="authOverlay" class="overlay" hidden>
+      <div class="dialog authDialog">
+        <div class="authTabs" role="tablist" aria-label="Sign in or create account">
+          <button
+            type="button"
+            role="tab"
+            id="authTabLogin"
+            class="authTab isActive"
+            aria-selected="true"
+            aria-controls="authPanelLogin"
+          >
+            Log in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="authTabRegister"
+            class="authTab"
+            aria-selected="false"
+            aria-controls="authPanelRegister"
+          >
+            Sign up
+          </button>
+        </div>
+
+        <div class="authHeaderRow">
+          <div>
+            <div class="authTitle" id="authTitle">Log in</div>
+            <div class="subtle authSubtitle" id="authSubtitle">
+              Welcome back. Sign in to your NoteVault account.
+            </div>
+          </div>
+        </div>
+
+        <section
+          id="authPanelLogin"
+          class="authPanel"
+          role="tabpanel"
+          aria-labelledby="authTabLogin"
+        >
+          <label class="label authField authField--inline" data-field="email">
+            <span class="authFieldLabel">Email</span>
+            <span class="authFieldInputCell">
+              <input
+                id="loginEmail"
+                class="input authInput"
+                type="email"
+                autocomplete="username"
+                placeholder="you@example.com"
+              />
+              <span class="fieldErrorText" id="loginEmailErr" hidden></span>
+            </span>
+          </label>
+          <label class="label authField authField--inline" data-field="password">
+            <span class="authFieldLabel">Password</span>
+            <span class="authFieldInputCell">
+              <input
+                id="loginPassword"
+                class="input authInput"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Your password"
+              />
+              <span class="fieldErrorText" id="loginPasswordErr" hidden></span>
+            </span>
+          </label>
+
+          <div id="loginFormError" class="note err authFormError" hidden></div>
+
+          <div class="row authActionsRow">
+            <button id="btnAuthLogin" class="btn primary authPrimaryBtn" type="button">Log in</button>
+          </div>
+
+          <div class="subtle authSwitchHint" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+            <button type="button" class="authSwitchLink" id="authSwitchToForgot">Forgot password?</button>
+            <span>·</span>
+            <span>Don't have an account?</span>
+            <button type="button" class="authSwitchLink" id="authSwitchToRegister">Sign up</button>
+          </div>
+        </section>
+
+        <section
+          id="authPanelForgotPassword"
+          class="authPanel"
+          role="tabpanel"
+          aria-labelledby="authTabLogin"
+          hidden
+        >
+          <p class="subtle" style="margin-top:0; margin-bottom:16px">
+            Enter your account email and we will send a 6-digit OTP to reset your password.
+          </p>
+          <label class="label authField authField--inline" data-field="email">
+            <span class="authFieldLabel">Email</span>
+            <span class="authFieldInputCell">
+              <input
+                id="forgotPasswordEmail"
+                class="input authInput"
+                type="email"
+                autocomplete="username"
+                placeholder="you@example.com"
+              />
+              <span class="fieldErrorText" id="forgotPasswordEmailErr" hidden></span>
+            </span>
+          </label>
+
+          <div id="forgotPasswordFormError" class="note err authFormError" hidden></div>
+
+          <div class="row authActionsRow" style="gap: 10px; flex-wrap: wrap;">
+            <button id="btnForgotPasswordSendOtp" class="btn primary authPrimaryBtn" type="button">Send OTP</button>
+          </div>
+
+          <div class="subtle authSwitchHint">
+            Remembered your password?
+            <button type="button" class="authSwitchLink" id="authSwitchToLoginFromForgot">Log in</button>
+          </div>
+        </section>
+
+        <section
+          id="authPanelChangePassword"
+          class="authPanel"
+          role="tabpanel"
+          aria-labelledby="authTabLogin"
+          hidden
+        >
+          <p class="subtle" style="margin-top:0; margin-bottom:16px">
+            Enter the OTP from your email and choose a new password.
+          </p>
+          <label class="label authField authField--inline" data-field="otp">
+            <span class="authFieldLabel">OTP</span>
+            <span class="authFieldInputCell">
+              <input
+                id="forgotPasswordOtp"
+                class="input authInput"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                placeholder="123456"
+              />
+              <span class="fieldErrorText" id="forgotPasswordOtpErr" hidden></span>
+            </span>
+          </label>
+          <label class="label authField authField--inline" data-field="password">
+            <span class="authFieldLabel">New password</span>
+            <span class="authFieldInputCell">
+              <input
+                id="forgotPasswordPassword"
+                class="input authInput"
+                type="password"
+                autocomplete="new-password"
+                placeholder="New password"
+              />
+              <span class="fieldErrorText" id="forgotPasswordPasswordErr" hidden></span>
+            </span>
+          </label>
+          <label class="label authField authField--inline" data-field="confirm">
+            <span class="authFieldLabel">Repeat password</span>
+            <span class="authFieldInputCell">
+              <input
+                id="forgotPasswordConfirm"
+                class="input authInput"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Repeat password"
+              />
+              <span class="fieldErrorText" id="forgotPasswordConfirmErr" hidden></span>
+            </span>
+          </label>
+
+          <div id="changePasswordFormError" class="note err authFormError" hidden></div>
+
+          <div class="row authActionsRow" style="gap: 10px; flex-wrap: wrap;">
+            <button id="btnForgotPasswordReset" class="btn primary authPrimaryBtn" type="button">Change password</button>
+            <button id="btnChangePasswordBack" class="btn" type="button">Back</button>
+          </div>
+
+          <div class="subtle authSwitchHint">
+            Remembered your password?
+            <button type="button" class="authSwitchLink" id="authSwitchToLoginFromChangePassword">Log in</button>
+          </div>
+        </section>
+
+        <section
+          id="authPanelRegister"
+          class="authPanel"
+          role="tabpanel"
+          aria-labelledby="authTabRegister"
+          hidden
+        >
+          <div class="authAvatarPickerRow">
+            <div class="authAvatarPreviewWrap">
+              <span class="authAvatarFallback" id="signupAvatarFallback" aria-hidden="true">+</span>
+              <img id="signupAvatarPreview" class="authAvatarPreview" alt="" width="84" height="84" hidden />
+              <button
+                type="button"
+                class="authAvatarRemoveBtn"
+                id="btnSignupAvatarRemove"
+                aria-label="Remove selected photo"
+                title="Remove photo"
+                hidden
+              >×</button>
+            </div>
+            <div class="authAvatarPickerText">
+              <div class="authAvatarChooseRow">
+                <button type="button" class="btn authAvatarChooseBtn" id="btnSignupAvatarChoose">
+                  Add photo
+                </button>
+                <span class="subtle authAvatarOptionalLabel">(optional)</span>
+              </div>
+              <div class="subtle authAvatarHint">JPEG, PNG, GIF, or WebP — up to 4&nbsp;MB.</div>
+              <input
+                id="signupAvatarInput"
+                class="authAvatarHiddenInput"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                tabindex="-1"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <label class="label authField authField--inline" data-field="display_name">
+            <span class="authFieldLabel">Display name <span class="subtle">(optional)</span></span>
+            <span class="authFieldInputCell">
+              <input
+                id="signupDisplayName"
+                class="input authInput"
+                type="text"
+                autocomplete="nickname"
+                placeholder="What should we call you?"
+              />
+              <span class="fieldErrorText" id="signupDisplayNameErr" hidden></span>
+            </span>
+          </label>
+          <label class="label authField authField--inline" data-field="email">
+            <span class="authFieldLabel">Email</span>
+            <span class="authFieldInputCell">
+              <input
+                id="signupEmail"
+                class="input authInput"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+              />
+              <span class="fieldErrorText" id="signupEmailErr" hidden></span>
+            </span>
+          </label>
+          <label class="label authField authField--inline" data-field="password">
+            <span class="authFieldLabel">Password <span class="subtle">(min 6)</span></span>
+            <span class="authFieldInputCell">
+              <input
+                id="signupPassword"
+                class="input authInput"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Choose a password"
+              />
+              <span class="fieldErrorText" id="signupPasswordErr" hidden></span>
+            </span>
+          </label>
+          <label class="label authField authField--inline" data-field="confirm">
+            <span class="authFieldLabel">Confirm password</span>
+            <span class="authFieldInputCell">
+              <input
+                id="signupConfirm"
+                class="input authInput"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Re-enter password"
+              />
+              <span class="fieldErrorText" id="signupConfirmErr" hidden></span>
+            </span>
+          </label>
+
+          <div id="signupFormError" class="note err authFormError" hidden></div>
+
+          <div class="row authActionsRow">
+            <button id="btnAuthRegister" class="btn primary authPrimaryBtn" type="button">Create account</button>
+          </div>
+
+          <div class="subtle authSwitchHint">
+            Already have an account?
+            <button type="button" class="authSwitchLink" id="authSwitchToLogin">Log in</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- Removed: advanced library meta (folders/tags) management UI -->
+
+    <script src="/mobile-api.js"></script>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

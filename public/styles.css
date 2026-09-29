@@ -1,0 +1,2162 @@
+:root {
+  /* Base canvas + transition paint (overscroll / reload / View Transitions) */
+  --page-transition-bg: #f4efe4;
+  --bg: #f4efe4; /* warm off-white (cream/beige) */
+  --card: rgba(17, 24, 39, 0.06);
+  --card2: rgba(17, 24, 39, 0.09);
+  --text: rgba(17, 24, 39, 0.92);
+  --muted: rgba(17, 24, 39, 0.65);
+  --border: rgba(17, 24, 39, 0.14);
+  --shadow: 0 16px 50px rgba(17, 24, 39, 0.12);
+  --primary: #7c3aed;
+  --primary2: #a855f7;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  color-scheme: light;
+  /* Single base + soft radials only — avoids sharp horizontal bands from multi-stop linear blends */
+  background-color: var(--bg);
+  background-image: radial-gradient(ellipse 1300px 720px at 18% 12%, rgba(124, 58, 237, 0.11), transparent 58%),
+    radial-gradient(ellipse 1000px 620px at 78% 22%, rgba(168, 85, 247, 0.08), transparent 55%);
+  background-repeat: no-repeat;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  background: transparent;
+  color: var(--text);
+}
+
+/* Same canvas during browser View Transitions (full reload / bfcache restore) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  background-color: var(--page-transition-bg);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Safari: some builds respect [hidden] inconsistently on <section>; keep Processes fully suppressed */
+#processCard[hidden] {
+  display: none !important;
+}
+
+.floatDockBtnProcesses {
+  padding-inline: 12px;
+}
+
+/* New note: sequential transcription stages (live → full → save queue) */
+.newNoteTxStageRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 8px;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.newNoteTxStageSep {
+  opacity: 0.55;
+  user-select: none;
+}
+
+.newNoteTxStage.pill {
+  margin: 0;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.newNoteTxStage[data-state='pending'] {
+  opacity: 0.55;
+}
+
+.newNoteTxStage[data-state='active'] {
+  opacity: 1;
+  border-color: rgba(124, 58, 237, 0.55);
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--text);
+}
+
+.newNoteTxStage[data-state='done'] {
+  opacity: 1;
+  border-color: rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.1);
+  color: rgba(220, 252, 231, 0.95);
+}
+
+.newNoteTxStage[data-state='skipped'] {
+  opacity: 0.75;
+  font-style: italic;
+  border-style: dashed;
+}
+
+#searchCard[hidden] {
+  display: none !important;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 1000;
+}
+
+.dialog {
+  width: min(860px, 96vw);
+  max-height: 86vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  /* Fully opaque dialog so text is easy to read; backdrop opacity stays on .overlay */
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+  padding: 14px 14px 12px;
+}
+
+.preBox {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 12px 0 10px;
+}
+
+/* Hide native file input visuals; we use a custom button + filename pill. */
+input[type='file'] {
+  display: none;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 18px 48px;
+}
+
+/* Mobile: use more horizontal space for saved notes tiles */
+@media (max-width: 520px) {
+  .app {
+    padding: 18px 10px 34px;
+  }
+
+  .topbar {
+    padding: 14px 12px;
+  }
+
+  .results {
+    gap: 10px;
+  }
+}
+
+/* Android app: the WebView already stops at the system bars; add a little breathing room from them. */
+.vv-native-app .app {
+  padding-top: calc(28px + 5px);
+  padding-bottom: calc(48px + 5px);
+}
+
+@media (max-width: 520px) {
+  .vv-native-app .app {
+    padding-top: calc(18px + 5px);
+    padding-bottom: calc(34px + 5px);
+  }
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--card2), var(--card));
+  box-shadow: var(--shadow);
+}
+
+.topbarActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.profileWrap {
+  position: relative;
+}
+
+.profileAvatarBtn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.profileAvatarBtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.profileAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.profileAvatarFallback {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.profileAvatarFallback--large {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.1);
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+}
+
+.profileDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--shadow);
+  z-index: 60;
+}
+
+.profileDropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.profileDropdownItem:hover {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.profileDropdownDanger {
+  color: var(--danger);
+  font-weight: 650;
+}
+
+.profileDialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profileBody {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.profileHero {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.profileEditHero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.profileEditHero .profileHeroAvatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+}
+
+.profileEditAvatarInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profileModalImg {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.profileViewName {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.profileViewEmail {
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.note.resultsEmptySaved {
+  min-height: 200px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 28px 20px;
+  font-size: 14px;
+  font-weight: 650;
+  border: none;
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-size: 20px;
+}
+
+.subtle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.status {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+  max-width: 45ch;
+}
+
+.status.ok {
+  color: var(--success);
+}
+
+.status.err {
+  color: var(--danger);
+  font-weight: 650;
+}
+
+.status.busy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.42);
+  color: var(--text);
+  font-weight: 650;
+  max-width: min(45ch, 100%);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (min-width: 820px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  /* Dock: full-width main column (stacked cards) */
+  .grid.mainGrid--dock {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.leftCol {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
+.rightStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Notes list: no card chrome (border/gradient/title) */
+.librarySurface {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.floatDock {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 2px 8px;
+  width: 100%;
+  box-sizing: border-box;
+  /* Narrow screens: keep one row — scroll sideways instead of wrapping Processes/Help down. */
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.floatDockLeading,
+.floatDockTrailing {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.floatDockTrailing {
+  margin-left: auto;
+}
+
+@media (max-width: 520px) {
+  .floatDock {
+    gap: 8px;
+    padding-inline: 0;
+  }
+
+  .floatDockBtn {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+.floatDockBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
+}
+
+.floatDockBtnHelp {
+  padding-inline: 18px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--card2), var(--card));
+  box-shadow: var(--shadow);
+  padding: 16px 16px 14px;
+}
+
+.miniCard {
+  padding: 14px 14px 12px;
+}
+
+.sideWindows {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 820px) {
+  .sideWindows {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.searchHeaderRow {
+  display: flex;
+  align-items: center;
+  /* Keep title + input visually separated, but responsive */
+  gap: clamp(14px, 5vw, 50px);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.searchQueryRow--header {
+  margin-bottom: 0;
+}
+
+.cardHeaderRow .btn {
+  padding: 8px 10px;
+  border-radius: 12px;
+  min-width: 42px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+/* Search row: mic + magnifying-glass icon buttons */
+.searchQueryRow .btnIconOnly {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchQueryRow .vvIconBtn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.btn:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(168, 85, 247, 0.95),
+    rgba(124, 58, 237, 0.7)
+  );
+  border-color: rgba(124, 58, 237, 0.65);
+}
+
+.btn:active {
+  background: linear-gradient(
+    180deg,
+    rgba(168, 85, 247, 0.98),
+    rgba(124, 58, 237, 0.78)
+  );
+  border-color: rgba(124, 58, 237, 0.7);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btn:focus {
+  outline: none;
+}
+
+.btn:focus-visible {
+  outline: none;
+  border-color: rgba(168, 85, 247, 0.85);
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.22);
+}
+
+.btn.primary {
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.9), rgba(124, 58, 237, 0.65));
+  border-color: rgba(124, 58, 237, 0.65);
+}
+
+.btn.primary:hover {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.95), rgba(124, 58, 237, 0.7));
+}
+
+/*
+ * STT toggle row: hovering one button must not “lift” the sibling into the generic `.btn:hover`
+ * purple (seen when the pair lived inside `<label>`, and still guarded for other browsers).
+ * `:has()` is supported in current Chromium / Firefox / Safari used with this app.
+ */
+@supports selector(:has(*)) {
+  .sttEngineRow:has(> .btn:hover) > .btn:not(:hover) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border);
+  }
+
+  .sttEngineRow:has(> .btn:hover) > .btn.primary:not(:hover) {
+    background: linear-gradient(180deg, rgba(124, 58, 237, 0.9), rgba(124, 58, 237, 0.65));
+    border-color: rgba(124, 58, 237, 0.65);
+  }
+}
+
+.btn.err:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.55);
+}
+
+.btn.err:active {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.65);
+}
+
+.dotToggle {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+.dotToggle:hover {
+  background: rgba(124, 58, 237, 0.55);
+  border-color: rgba(124, 58, 237, 0.8);
+}
+
+.dotToggle.isOn {
+  background: rgba(34, 197, 94, 0.8);
+  border-color: rgba(34, 197, 94, 0.9);
+}
+
+.dotToggle.isOn:hover {
+  background: rgba(34, 197, 94, 0.85);
+  border-color: rgba(34, 197, 94, 0.95);
+}
+
+.toggleText {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+}
+
+#searchBody {
+  padding-top: 2px;
+}
+
+#searchBody > .row {
+  margin-bottom: 0;
+}
+
+.searchQueryRow {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.searchQueryRow .searchQueryInput {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 300px;
+}
+
+@media (max-width: 420px) {
+  /* If needed on very small screens, allow wrap */
+  .searchQueryRow {
+    flex-wrap: wrap;
+  }
+  .searchQueryRow .searchQueryInput {
+    max-width: 100%;
+  }
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  outline: none;
+}
+
+#noteLanguage {
+  background: rgba(255, 255, 255, 0.95);
+  color: rgba(0, 0, 0, 0.92);
+  border-color: rgba(255, 255, 255, 0.75);
+  color-scheme: light;
+}
+
+/* New note: keep language select compact (inline, beside language pill). */
+.noteLanguageSelect {
+  width: auto;
+  min-width: 10.5rem;
+  max-width: min(18rem, 60vw);
+  padding: 6px 10px;
+  border-radius: 999px;
+  line-height: 1.1;
+}
+
+.notePreviewAudioInline {
+  width: min(220px, 25vw);
+  max-width: 25vw;
+  min-width: 140px;
+  flex: 0 0 auto;
+  height: 32px;
+}
+
+.newNoteTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.vvIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding-inline: 10px;
+}
+
+#uploadNoteBtn.vvIconBtn {
+  min-width: 56px;
+  padding-inline: 14px;
+}
+
+.vvIcon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* Stronger “stop” readout at the same control size */
+.vvIconBtn .vvIcon--stop {
+  width: 22px;
+  height: 22px;
+}
+
+/* Slightly larger save glyph for legibility */
+.vvIconBtn .vvIcon--save {
+  width: 20px;
+  height: 20px;
+}
+
+.btn.vvIconBtn.err {
+  border-color: rgba(239, 68, 68, 0.45);
+  color: rgba(185, 28, 28, 0.98);
+}
+
+.jobsFilters .vvIconBtn,
+.jobItem .vvIconBtn {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.newNoteTitleInput {
+  flex: 0 1 auto;
+  width: min(25vw, 18rem);
+  max-width: 25vw;
+  min-width: 180px;
+}
+
+#liveTranscript {
+  resize: none;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+}
+
+#liveTranscript::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.liveTxStatusText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .newNoteTitleInput {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Native dropdown menus (options) are browser-controlled, but set a sane default for light theme. */
+select option {
+  background: #ffffff;
+  color: #111827;
+}
+
+/* In some Chromium builds, <select> popup theme follows the element's color-scheme. */
+select {
+  color-scheme: light;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #noteLanguage:hover {
+    background: rgba(255, 255, 255, 0.98);
+    color: var(--text);
+    border-color: rgba(124, 58, 237, 0.35);
+  }
+}
+
+#noteLanguage:focus {
+  border-color: rgba(168, 85, 247, 0.85);
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15);
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: rgba(168, 85, 247, 0.85);
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15);
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 10px 0 12px;
+}
+
+.label .input,
+.label .textarea {
+  margin-top: 6px;
+}
+
+.label .textarea#liveTranscript {
+  max-height: 220px;
+  overflow: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.label .textarea#liveTranscript::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.audio {
+  width: 100%;
+}
+
+.card .audio {
+  width: 95%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.note .audio {
+  width: 75%;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Compact inline player in the playback row */
+.note .audio.noteInlinePlayer {
+  width: 300px;
+  margin: 0;
+}
+
+.notePlaybackRow {
+  margin-top: 8px;
+  margin-bottom: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Audio on its own row on slim widths so expanded native controls aren’t cramped with icons. */
+.notePlaybackRow .noteInlineAudioShell {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
+}
+
+.notePlaybackBelowBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  margin-left: auto;
+}
+
+.notePlaybackLoopBtn {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+}
+
+.notePlaybackSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  margin-left: 0;
+}
+
+@media (max-width: 560px) {
+  .notePlaybackRow {
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .notePlaybackRow .noteInlineAudioShell {
+    flex: 1 1 100%;
+    width: 100%;
+    order: 0;
+  }
+
+  .notePlaybackRow .noteInlineAudioShell .audio.noteInlinePlayer {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .notePlaybackBelowBar {
+    order: 1;
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .notePlaybackSecondary {
+    width: auto;
+    justify-content: flex-end;
+  }
+}
+
+/* Collapsed summaries keep the old grouped actions; expanded view uses the detail layout instead. */
+.note.noteExpanded .noteHeaderActions.noteHeaderActions--summary {
+  display: none !important;
+}
+
+.noteDisplayTitleBlock.noteExpandedTitleRow {
+  justify-content: flex-start;
+}
+
+.noteDisplayTitleBlock.noteExpandedTitleRow .noteDisplayTitleText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Play + Edit sit to the right of the title on wide layouts; spacer no longer needed. */
+.noteExpandedTitleActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.noteExpandedTitleSpacer {
+  flex: 1 1 auto;
+  min-width: 8px;
+}
+
+.noteDisplayTitleBlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.noteDisplayTitleText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.noteDisplayTitleActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 100%;
+}
+
+.noteHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 100%;
+}
+
+@media (max-width: 560px) {
+  /* Mobile: keep header in flow but wrap actions to next line */
+  .noteTitleRow {
+    flex-wrap: wrap;
+  }
+
+  /* Ensure the actions/timestamp block can drop to a new line */
+  .noteTitleRow > div:last-child {
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Expanded transcript title: force full-width title row, then Play (left) + Edit (right). */
+  .noteDisplayTitleBlock.noteExpandedTitleRow {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 8px;
+    column-gap: 10px;
+  }
+
+  .noteDisplayTitleBlock.noteExpandedTitleRow .noteDisplayTitleText {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .noteExpandedTitleActions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px dashed rgba(255, 255, 255, 0.18);
+  padding-top: 10px;
+}
+
+.results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 12px;
+  align-items: start;
+  margin-top: 0;
+}
+
+@media (max-width: 420px) {
+  .results {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Full-width row for expanded note details; collapsed notes sit in the tile grid. */
+.results > .note.noteExpanded {
+  grid-column: 1 / -1;
+}
+
+/* Empty / error / full-width messages in the results grid */
+.results > .resultsBanner {
+  grid-column: 1 / -1;
+}
+
+.answerWrap {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  color: var(--text);
+  white-space: normal;
+}
+
+.answerTitle {
+  font-weight: 750;
+  margin-bottom: 6px;
+}
+
+.answerMeta {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.answerItem {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dotted var(--border);
+}
+
+.cite {
+  color: rgba(168, 85, 247, 0.95);
+  text-decoration: underline;
+}
+
+.cite:hover {
+  color: rgba(124, 58, 237, 0.95);
+}
+
+.note {
+  border: none;
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  min-width: 0;
+}
+
+/* Collapsed tiles: no outer “card” tint — inner transcript shell keeps its own look. */
+.note.noteCollapsed {
+  background: transparent;
+  padding: 0;
+}
+
+/* Processing notes (no ready-state saved card yet): same boxed look as saved-note shells. */
+.note.noteCollapsed.note--processingInCard {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.note.noteCollapsed.note--processingInCard:hover {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.newNoteTitleHint {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.note.err {
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.45);
+  color: rgba(255, 200, 200, 0.95);
+}
+
+.noteSummary {
+  cursor: default;
+}
+
+.note.noteCollapsed:hover {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+/* Ready “saved card” layout: toolbar (meta + collapse + ▼) only when expanded; saved surface is the old inner box. */
+.note.noteCollapsed.note--hasCollapsedShell .noteSummaryToolbar {
+  display: none !important;
+}
+
+.note.noteExpanded.note--hasCollapsedShell .noteSummaryToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.noteToolbarSpacer {
+  flex: 1 1 auto;
+  min-width: 12px;
+}
+
+.noteCollapseActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.noteToolbarDate {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.noteToolbarDateRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.noteToolbarDateRow .noteToolbarReprocess {
+  flex-shrink: 0;
+}
+
+.noteTranscriptProse {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.note.noteExpanded {
+  padding: 14px 14px 12px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.noteDetails {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  max-height: min(62vh, 560px);
+  overflow: hidden;
+}
+
+.note.isEditing .noteDetails {
+  max-height: min(85vh, 820px);
+  overflow: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.note.isEditing .noteDetails::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Hide scrollbars inside the edit transcript textarea (keep scrolling) */
+.note .editBox .textarea {
+  min-height: min(48vh, 380px);
+  scrollbar-width: none; /* Firefox */
+}
+
+.note .editBox .textarea::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.note.isEditing .notePlaybackRow {
+  display: none !important;
+}
+
+.noteTranscript {
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 6px;
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Keep note title visible while scrolling transcript */
+.noteTranscript .noteDisplayTitleBlock {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 8px 10px;
+  margin: -2px -10px 8px;
+  border-bottom: 1px dashed var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+}
+
+.noteTranscript .noteDisplayTitleBlock.noteExpandedTitleRow {
+  flex-wrap: wrap;
+}
+
+.noteTranscript .noteExpandedTitleRow .vvIconBtn {
+  flex-shrink: 0;
+}
+
+.noteWordWall {
+  display: block;
+  line-height: 1.55;
+}
+
+.noteTranscript hr.noteTitleBodyDivider {
+  display: none;
+}
+
+.noteTranscript::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.noteScrollHint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.noteTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.noteTitleCluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.noteTitleCluster .noteTitle {
+  font-weight: 750;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.noteFileMeta {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  flex: 0 1 auto;
+}
+
+.noteMeta {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.noteTitleStamp {
+  flex-shrink: 0;
+  text-align: right;
+  align-self: flex-start;
+}
+
+/* Collapsed cards (legacy layout only): hide chrome; “saved card” layout hides the whole toolbar instead. */
+.note.noteCollapsed:not(.note--hasCollapsedShell) .noteFileMeta,
+.note.noteCollapsed:not(.note--hasCollapsedShell) .noteTitleStamp,
+.note.noteCollapsed:not(.note--hasCollapsedShell) button[data-fav],
+.note.noteCollapsed:not(.note--hasCollapsedShell) .noteStatus.ready,
+.note.noteCollapsed:not(.note--hasCollapsedShell) .noteActionsChevron,
+.note.noteCollapsed:not(.note--hasCollapsedShell) button[data-toggle],
+.note.noteCollapsed:not(.note--hasCollapsedShell) .noteActionsWrap {
+  display: none !important;
+}
+
+.noteBody {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.noteDisplayTitleBlock {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+.noteSavedCard.noteCollapsedTranscriptShell .noteDisplayTitleBlock {
+  font-size: 17px;
+}
+
+hr.noteTitleBodyDivider {
+  border: 0;
+  border-top: 1px dashed var(--border);
+  margin: 10px 0 12px;
+}
+
+hr.noteTitleBodyDivider.editTitleBodySep {
+  margin: 10px 0 12px;
+}
+
+.noteCollapsedTranscriptShell,
+.noteSavedCard.noteCollapsedTranscriptShell {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+/* Saved card is the primary surface (first in summary); no extra gap above it. */
+.note--hasCollapsedShell .noteSummary > .noteSavedCard.noteCollapsedTranscriptShell {
+  margin-top: 0;
+}
+
+/* Collapsed preview (title + dashed rule + snippet): whole region expands the note like the Expand control. */
+.note.noteCollapsed .noteCollapsedTranscriptShell[data-collapsed-expand='1'],
+.note.noteCollapsed .noteSavedCard[data-collapsed-expand='1'] {
+  cursor: pointer;
+}
+
+.note.noteCollapsed .noteCollapsedTranscriptShell[data-collapsed-expand='1']:focus-visible,
+.note.noteCollapsed .noteSavedCard[data-collapsed-expand='1']:focus-visible {
+  outline: 2px solid rgba(168, 85, 247, 0.65);
+  outline-offset: 2px;
+}
+
+.noteCollapsedBodyPreview {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 9.5em;
+  overflow: hidden;
+}
+
+/* Collapsed saved-card: title + star on one line */
+.noteCollapsedTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.noteCollapsedTitleText {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.35;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noteCollapsedTitleSep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  opacity: 0.85;
+  flex: 0 0 auto;
+}
+
+.noteStarInline {
+  min-width: 30px;
+  min-height: 30px;
+  padding-inline: 6px;
+  border-radius: 10px;
+}
+
+.noteStarInline .vvIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.segRow {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: 1px dotted var(--border);
+  background: transparent;
+}
+
+.segRow.playing {
+  background: rgba(0, 0, 0, 0.07);
+  border-bottom-color: rgba(0, 0, 0, 0.18);
+  outline: 2px solid rgba(0, 0, 0, 0.08);
+  outline-offset: 0;
+  border-radius: 10px;
+  padding: 8px 8px;
+  margin: 2px 0;
+}
+
+/* If a row is also a match, keep the playing tint visible */
+.segRow.match.playing {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+/* Search results: highlight matched text in full transcript (no segmented rows). */
+.vvSearchHit {
+  border-radius: 8px;
+  padding: 1px 3px;
+  cursor: pointer;
+}
+
+.vvSearchHit.search {
+  background: rgba(59, 130, 246, 0.22); /* light blue */
+  outline: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.vvSearchHit.playing {
+  background: rgba(0, 0, 0, 0.1); /* grey during playback */
+  outline: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.vvSearchHit.search.playing {
+  background: rgba(0, 0, 0, 0.1); /* override blue while playing */
+}
+
+.segRow.match {
+  border-bottom-color: rgba(34, 197, 94, 0.55);
+  background: rgba(34, 197, 94, 0.08);
+  border-left: 3px solid rgba(34, 197, 94, 0.75);
+  padding-left: 10px;
+}
+
+.segPlay {
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.segTime {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.segText {
+  color: var(--text);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.word {
+  display: inline;
+  padding: 1px 2px;
+  border-radius: 6px;
+}
+
+.word.on {
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+.segHeader {
+  grid-template-columns: auto 1fr;
+  padding: 6px 2px;
+  border-bottom: 1px dotted var(--border);
+}
+
+.segHeaderLabel {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.segHeaderText {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.noteActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.noteStatus {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.noteStatus.ready {
+  color: var(--success);
+}
+
+.pill {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* New note transcript preview: inline-flex pills omit whitespace between text + child spans — use gap */
+#liveTxStatus.pill {
+  gap: 0.4em;
+}
+
+.timerPill {
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(0, 0, 0, 0.92);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.noteLength {
+  margin-right: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(0, 0, 0, 0.92);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+/* Saved notes: make Length + Lang pills transparent */
+.note .noteLength,
+.note .timerPill {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.editBox {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.18);
+  padding-top: 12px;
+}
+
+.jobsPanel {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.18);
+  margin-bottom: 14px;
+}
+
+.jobsRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jobsTitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+/* Help: keep App hint + UI steps on one line */
+.helpButtonsRow {
+  flex-wrap: nowrap;
+}
+
+.helpButtonsRow .btn {
+  padding: 8px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.jobsList {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 10px 10px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.jobItem {
+  padding: 6px 2px;
+  border-bottom: 1px dotted var(--border);
+}
+
+.jobItem:last-child {
+  border-bottom: 0;
+}
+
+.jobMeta {
+  color: var(--muted);
+}
+
+.jobsSummary {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.jobsKpi {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.jobsKpi strong {
+  color: var(--text);
+}
+
+.jobsFilters {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.jobsSelect {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 12px;
+  outline: none;
+}
+
+/* Per-note processing priority (native select: closed + options where browser allows) */
+select.jobsSelect--priority {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+}
+
+select.jobsSelect--priority option {
+  background: #ffffff;
+  color: #111111;
+}
+
+/* Ask mode dropdown: default (non-hover) colors only */
+#askMode {
+  background: #ffffff;
+  color: #000000;
+}
+
+.err {
+  color: var(--text);
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* Note header + actions dropdown */
+.noteActionsChevron {
+  padding: 8px 10px;
+  min-width: 42px;
+}
+
+.noteActionsWrap {
+  position: relative;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.noteCollapseActions .noteActionsWrap {
+  margin-left: 0;
+}
+
+.noteActionsWrap .noteActionsChevron {
+  border: none;
+  background: transparent;
+}
+
+.noteActions {
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  top: calc(100% );
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(17, 24, 39, 0.18);
+  padding: 10px;
+}
+
+.noteActionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: max-content;
+}
+
+.noteActionsList .btn {
+  text-align: left;
+  justify-content: flex-start;
+  padding: 9px 10px;
+}
+
+.noteSummary {
+  position: relative;
+}
+
+/* =====================
+   Auth dialog: tabs, field-level errors, optional signup avatar
+   ===================== */
+.authDialog {
+  padding: 18px 22px 18px;
+  max-width: 620px;
+  width: 100%;
+}
+
+.authHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.authTitle {
+  font-weight: 850;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.authSubtitle {
+  margin-top: 6px;
+  max-width: 56ch;
+}
+
+.authTabs {
+  display: inline-flex;
+  margin: 0 0 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(17, 24, 39, 0.04);
+  gap: 4px;
+}
+
+.authTab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.authTab:hover {
+  color: var(--text);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.authTab.isActive {
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.92), rgba(124, 58, 237, 0.7));
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28);
+}
+
+.authTab.isActive:hover {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.95), rgba(124, 58, 237, 0.78));
+}
+
+.authTab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.22);
+}
+
+.authPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.authPanel[hidden] {
+  display: none !important;
+}
+
+.authField {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+/* Inline layout: label sits to the LEFT, input + field-error sit to the RIGHT.
+   The label column is fixed-width so all rows align cleanly; on narrow viewports
+   we fall back to the original stacked layout. */
+.authField--inline {
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 4px;
+}
+
+.authField--inline .authFieldLabel {
+  margin: 0;
+  padding-top: 0;
+}
+
+.authFieldInputCell {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.authField--inline .authInput {
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .authField--inline {
+    grid-template-columns: 1fr;
+  }
+}
+
+.authFieldLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.2px;
+}
+
+.authInput {
+  margin-top: 0;
+}
+
+.authInput.fieldError {
+  border-color: rgba(239, 68, 68, 0.85);
+  background: rgba(239, 68, 68, 0.06);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.14);
+}
+
+.authInput.fieldError:focus {
+  border-color: rgba(239, 68, 68, 0.95);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.22);
+}
+
+.fieldErrorText {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(185, 28, 28, 0.95);
+  line-height: 1.35;
+}
+
+.fieldErrorText[hidden] {
+  display: none !important;
+}
+
+.authFormError {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.authFormError[hidden] {
+  display: none !important;
+}
+
+.authActionsRow {
+  margin: 4px 0 0;
+  justify-content: stretch;
+  gap: 0;
+}
+
+.authPrimaryBtn {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+
+.authSwitchHint {
+  font-size: 13px;
+  text-align: center;
+  margin: 2px 0 0;
+}
+
+.authSwitchLink {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgba(124, 58, 237, 0.95);
+  font: inherit;
+  font-weight: 700;
+  padding: 0 2px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.authSwitchLink:hover {
+  color: rgba(168, 85, 247, 1);
+}
+
+/* Signup avatar picker */
+.authAvatarPickerRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 2px 6px;
+}
+
+.authAvatarPreviewWrap {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.06);
+  border: 2px dashed rgba(124, 58, 237, 0.45);
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.authAvatarPreviewWrap.hasImage {
+  border-style: solid;
+  border-color: rgba(124, 58, 237, 0.55);
+  background: transparent;
+}
+
+.authAvatarFallback {
+  font-size: 32px;
+  font-weight: 800;
+  color: rgba(124, 58, 237, 0.7);
+  user-select: none;
+}
+
+.authAvatarPreviewWrap.hasImage .authAvatarFallback {
+  display: none;
+}
+
+.authAvatarPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.authAvatarRemoveBtn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 10px rgba(17, 24, 39, 0.18);
+  padding: 0;
+}
+
+.authAvatarRemoveBtn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.55);
+  color: rgba(185, 28, 28, 0.95);
+}
+
+.authAvatarPickerText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.authAvatarChooseRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.authAvatarChooseBtn {
+  align-self: flex-start;
+  padding: 8px 12px;
+}
+
+.authAvatarOptionalLabel {
+  font-size: 12px;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.authAvatarHint {
+  font-size: 12px;
+  margin: 0;
+}
+
+.authAvatarHiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
