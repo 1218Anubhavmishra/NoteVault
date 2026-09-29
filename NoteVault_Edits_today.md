@@ -16,5 +16,6 @@ title: NoteVault — Edits today (2026-09-28 / 2026-09-29)
 - **Repo public**: `1218Anubhavmishra/NoteVault` is now public.
 - **iOS platform**: installed `@capacitor/ios` 7.6.9, added `ios/` (Swift Package Manager, bundle id `xyz.voicevault.app`), microphone usage text in `Info.plist`, `npm run cap:sync:ios`. Build needs a Mac / Codemagic.
 - **Electron**: installed Electron 44; `electron/main.cjs` serves `public/` at `https://localhost` so the live backend works unchanged; `npm run desktop` opens the desktop app (login screen verified).
+- **Codemagic**: connected to `1218Anubhavmishra/NoteVault`; added `codemagic.yaml`. First `ios-simulator-build` run succeeded (Mac mini M2, ~1.5 min, artifact `NoteVault-simulator.zip` 1.56 MB). `ios-release` still needs an Apple Developer account + App Store Connect key.
 - **Reminders**: take the login screenshot when it next appears; test panel × buttons on a physical phone.
 - **Still to do before Play launch**: in-app account deletion, privacy policy, Data safety form, custom app icon + store graphics.
