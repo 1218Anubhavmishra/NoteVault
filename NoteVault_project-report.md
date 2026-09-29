@@ -1,7 +1,7 @@
 ---
 title: NoteVault — Project Report (Android App)
 date: 2026-09-29
-repo: NoteVault (local only, D:\Projects\NoteVault)
+repo: GitHub 1218Anubhavmishra/NoteVault (private) · local D:\Projects\NoteVault
 ---
 
 ## 1) Executive summary
@@ -32,7 +32,7 @@ Captured from the debug build running on the `flutter_emulator` virtual device (
 | | voiceVault (web) | NoteVault (Android) |
 | :-- | :-- | :-- |
 | Location | `C:\Users\anubh\.cursor\projects\empty-window\voiceVault` | `D:\Projects\NoteVault` |
-| Git | GitHub `1218Anubhavmishra/voiceVault` | Not in Git yet |
+| Git | GitHub `1218Anubhavmishra/voiceVault` | GitHub `1218Anubhavmishra/NoteVault` (private) |
 | Frontend host | Vercel (`www.voicevault.xyz`) | Inside the APK (`https://localhost` in the WebView) |
 | Backend | Render (`api.voicevault.xyz`) | Same Render backend |
 | Database | Render PostgreSQL | Same database |
@@ -145,4 +145,4 @@ Causes: the embedding model is fetched from Hugging Face and loaded only when th
 | Warm-up request when the app/search opens | frontend | Hides remaining warm-up behind the user's typing |
 | Keep the Render service from sleeping (paid instance) | Render | Avoids cold starts if on the free tier |
 - The Pixel_8_Pro_API_36 emulator hangs during boot; use `flutter_emulator`.
-- NoteVault is not in Git; back up the folder (especially `android-signing\`).
+- `android-signing\` (upload key) and `.env` are deliberately not in Git; back them up separately.

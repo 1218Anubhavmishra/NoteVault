@@ -12,5 +12,6 @@ title: NoteVault — Edits today (2026-09-28 / 2026-09-29)
 - **Screenshots**: captured 5 emulator screenshots into `screenshots/` (home, expanded note, search, new note, help) and added them to the reports.
 - **Bar spacing fix**: content no longer runs under the status bar / navigation bar (native margins + 5 px app-only padding + matching bar colour); screenshots retaken after the fix.
 - **First-search speed**: backend now warms the embedding model on start, the Docker image includes the model, and chunks are embedded after transcription before the note is saved as ready (web commit `e44a5b0`, pushed; copied here).
+- **GitHub**: pushed to private repo `1218Anubhavmishra/NoteVault` (README marks it as the app version of voiceVault; signing key, `.env`, APK/AAB excluded).
 - **Reminders**: take the login screenshot when it next appears; test panel × buttons on a physical phone.
 - **Still to do before Play launch**: in-app account deletion, privacy policy, Data safety form, custom app icon + store graphics.
