@@ -26,6 +26,7 @@
 	<true/>
 	<key>WKAppBoundDomains</key>
 	<array>
+		<string>app.voicevault.xyz</string>
 		<string>api.voicevault.xyz</string>
 		<string>voicevault.xyz</string>
 		<string>www.voicevault.xyz</string>

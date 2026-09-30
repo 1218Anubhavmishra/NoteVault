@@ -13,7 +13,7 @@
     "cap:sync": "npx cap sync android",
     "android:build": "npx cap sync android && cd android && .\\gradlew.bat assembleDebug",
     "android:install": "npx cap sync android && cd android && .\\gradlew.bat installDebug",
-    "cap:sync:ios": "npx cap sync ios",
+    "cap:sync:ios": "npx cap sync ios && node ios-config.mjs",
     "desktop": "electron electron/main.cjs"
   },
   "dependencies": {

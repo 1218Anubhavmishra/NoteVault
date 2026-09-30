@@ -16,7 +16,7 @@ workflows:
       - name: Install npm dependencies
         script: npm ci
       - name: Copy web assets into the iOS project
-        script: npx cap sync ios
+        script: npm run cap:sync:ios
       - name: Build for iOS simulator
         script: |
           xcodebuild \
@@ -53,7 +53,7 @@ workflows:
       - name: Install npm dependencies
         script: npm ci
       - name: Copy web assets into the iOS project
-        script: npx cap sync ios
+        script: npm run cap:sync:ios
       - name: Build for iOS simulator
         script: |
           xcodebuild \
@@ -108,7 +108,7 @@ workflows:
       - name: Install npm dependencies
         script: npm ci
       - name: Copy web assets into the iOS project
-        script: npx cap sync ios
+        script: npm run cap:sync:ios
       - name: Apply signing profiles
         script: xcode-project use-profiles
       - name: Set build number

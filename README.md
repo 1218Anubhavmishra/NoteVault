@@ -29,7 +29,7 @@ The Xcode project is in `ios/App` (bundle id `xyz.voicevault.app`). Building req
 
 ```bash
 npm ci
-npx cap sync ios        # copies public/ into the iOS project (ios/App/App/public is git-ignored)
+npm run cap:sync:ios    # copies public/ into the iOS project and sets the iOS origin to capacitor://app.voicevault.xyz (needed for login cookies)
 open ios/App/App.xcodeproj
 ```
 
