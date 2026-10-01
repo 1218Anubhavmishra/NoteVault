@@ -126,3 +126,20 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+
+  # macOS desktop app (Electron). Unsigned universal .dmg (Apple silicon + Intel). macOS will warn that
+  # the developer can't be verified: right-click the app > Open the first time. Signing/notarising needs
+  # a paid Apple Developer ID.
+  macos-desktop:
+    name: macOS desktop app (unsigned .dmg)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      node: 20
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Build macOS .dmg
+        script: npm run desktop:mac
+    artifacts:
+      - builds/desktop/*.dmg
