@@ -1,7 +1,7 @@
 # NoteVault — Project Report
 
 ## Overview
-`NoteVault` is the **Android app** version of the voiceVault web app. It lets users **record audio notes**, have them **transcribed**, and **search across notes** from a phone. It shares the same account, notes, and backend as the website — anything saved on the website shows up in the app and vice versa.
+`NoteVault` is the **app version** of the voiceVault web app, for **Android and iOS** (Capacitor) and **Windows, macOS and Linux** (Electron). It lets users **record audio notes**, have them **transcribed**, and **search across notes** from a phone or computer. It shares the same account, notes, and backend as the website — anything saved on the website shows up in the app and vice versa.
 
 It lives in its own folder (`D:\Projects\NoteVault`), separate from the web project, so app work cannot break the live website.
 
@@ -29,13 +29,20 @@ More screenshots are in `NoteVault_project-report.md` and the `screenshots/` fol
 
 ### Technology and build map
 
-The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`).
+The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps and language detection; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
 
 ```mermaid
 flowchart LR
   subgraph Shared["Shared code"]
     FE["Frontend: public/<br/>HTML + CSS + JavaScript"]
     BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js)"]
+  end
+
+  subgraph External["External services used by the backend"]
+    EL["ElevenLabs Scribe<br/>speech-to-text (transcription)"]
+    OAI["OpenAI<br/>AI note titles, quick answers"]
+    SMTP["Email (SMTP)<br/>password-reset codes"]
+    FF["ffmpeg<br/>audio preprocessing"]
   end
 
   subgraph Wrappers["Wrapper technology"]
@@ -51,9 +58,13 @@ flowchart LR
     I["iOS: simulator .zip, signed .ipa later<br/>built on a Codemagic cloud Mac"]
     D["Windows: Setup .exe + Portable .exe<br/>built on Windows (npm run desktop:win)"]
     M["macOS: .dmg<br/>built on a Codemagic cloud Mac"]
-    L["Linux: .tar.gz (AppImage optional)<br/>built on Windows (npm run desktop:linux)"]
+    L["Linux: .tar.gz built on Windows<br/>.AppImage built on a Codemagic cloud Mac"]
   end
 
+  BE --> EL
+  BE --> OAI
+  BE --> SMTP
+  BE --> FF
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I
@@ -92,6 +103,14 @@ Outputs:
 - `release\NoteVault-release.aab` — upload to Play Console
 - `release\NoteVault-release.apk` — direct install
 
+### Desktop and iOS builds
+```powershell
+npm run desktop:win      # Windows installer + portable .exe
+npm run desktop:linux    # Linux .tar.gz
+npm run cap:sync:ios     # prepare ios/ before a Codemagic iOS build
+```
+The macOS `.dmg`, Linux `.AppImage` and iOS builds come from Codemagic workflows (`codemagic.yaml`). All current build files are collected in `builds\`.
+
 ## Key App Settings
 - **Package id**: `xyz.voicevault.app` (must never change once published)
 - **App name**: NoteVault
@@ -106,4 +125,5 @@ Outputs:
 - Needs an internet connection (no offline mode).
 - Depends on the Render backend being up and `VOICEVAULT_CROSS_SITE_COOKIES=1` set there (otherwise login fails with `AUTH_REQUIRED`).
 - Losing the upload key makes updates difficult (Play App Signing reset needed).
-- iOS builds require a Mac (or cloud Mac) and an Apple Developer account.
+- iOS builds require a Mac (or Codemagic cloud Mac); publishing needs an Apple Developer account.
+- Desktop builds are not code-signed, so Windows and macOS warn on first run.

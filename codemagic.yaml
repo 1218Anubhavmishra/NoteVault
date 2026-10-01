@@ -129,9 +129,9 @@ workflows:
 
   # macOS desktop app (Electron). Unsigned universal .dmg (Apple silicon + Intel). macOS will warn that
   # the developer can't be verified: right-click the app > Open the first time. Signing/notarising needs
-  # a paid Apple Developer ID.
+  # a paid Apple Developer ID. Also builds the Linux AppImage, which can't be built on Windows.
   macos-desktop:
-    name: macOS desktop app (unsigned .dmg)
+    name: macOS desktop app (unsigned .dmg) + Linux AppImage
     instance_type: mac_mini_m2
     max_build_duration: 30
     environment:
@@ -141,5 +141,8 @@ workflows:
         script: npm ci
       - name: Build macOS .dmg
         script: npm run desktop:mac
+      - name: Build Linux AppImage
+        script: npx electron-builder --linux AppImage
     artifacts:
       - builds/desktop/*.dmg
+      - builds/desktop/*.AppImage

@@ -1,16 +1,16 @@
 ---
-title: NoteVault — Project Report (Android App)
-date: 2026-09-29
-repo: GitHub 1218Anubhavmishra/NoteVault (private) · local D:\Projects\NoteVault
+title: NoteVault — Project Report (App version of voiceVault)
+date: 2026-10-01
+repo: GitHub 1218Anubhavmishra/NoteVault (public) · local D:\Projects\NoteVault
 ---
 
 ## 1) Executive summary
 
-`NoteVault` is the **Android app** built from the voiceVault web app using **Capacitor**. It gives users the same experience as the website — record, transcribe, and search voice notes — on a phone, using the **same account, data, and backend** (`https://api.voicevault.xyz` on Render).
+`NoteVault` is the **app version** of the voiceVault web app: **Android and iOS** via **Capacitor**, and **Windows, macOS and Linux** via **Electron**. It gives users the same experience as the website — record, transcribe, and search voice notes — using the **same account, data, and backend** (`https://api.voicevault.xyz` on Render).
 
 The package id (`xyz.voicevault.app`) and backend URL were deliberately kept the same as planned for voiceVault, so the app and website stay in sync and Render needs no separate setup.
 
-## 1.1) Screenshots (Android emulator, 2026-09-29)
+## 1.1) Screenshots (Android emulator, 2026-10-01)
 
 Captured from the debug build running on the `flutter_emulator` virtual device (Android 15, 1080×1920), after the status/navigation bar spacing fix. Login screen: pending (see section 11).
 
@@ -32,7 +32,7 @@ Captured from the debug build running on the `flutter_emulator` virtual device (
 | | voiceVault (web) | NoteVault (Android) |
 | :-- | :-- | :-- |
 | Location | `C:\Users\anubh\.cursor\projects\empty-window\voiceVault` | `D:\Projects\NoteVault` |
-| Git | GitHub `1218Anubhavmishra/voiceVault` | GitHub `1218Anubhavmishra/NoteVault` (private) |
+| Git | GitHub `1218Anubhavmishra/voiceVault` | GitHub `1218Anubhavmishra/NoteVault` (public) |
 | Frontend host | Vercel (`www.voicevault.xyz`) | Inside the APK (`https://localhost` in the WebView) |
 | Backend | Render (`api.voicevault.xyz`) | Same Render backend |
 | Database | Render PostgreSQL | Same database |
@@ -77,13 +77,20 @@ Changes to the backend are made and pushed in the **web project**; NoteVault onl
 
 ### Technology and build map
 
-The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`).
+The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps and language detection; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
 
 ```mermaid
 flowchart LR
   subgraph Shared["Shared code"]
     FE["Frontend: public/<br/>HTML + CSS + JavaScript"]
     BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js)"]
+  end
+
+  subgraph External["External services used by the backend"]
+    EL["ElevenLabs Scribe<br/>speech-to-text (transcription)"]
+    OAI["OpenAI<br/>AI note titles, quick answers"]
+    SMTP["Email (SMTP)<br/>password-reset codes"]
+    FF["ffmpeg<br/>audio preprocessing"]
   end
 
   subgraph Wrappers["Wrapper technology"]
@@ -99,9 +106,13 @@ flowchart LR
     I["iOS: simulator .zip, signed .ipa later<br/>built on a Codemagic cloud Mac"]
     D["Windows: Setup .exe + Portable .exe<br/>built on Windows (npm run desktop:win)"]
     M["macOS: .dmg<br/>built on a Codemagic cloud Mac"]
-    L["Linux: .tar.gz (AppImage optional)<br/>built on Windows (npm run desktop:linux)"]
+    L["Linux: .tar.gz built on Windows<br/>.AppImage built on a Codemagic cloud Mac"]
   end
 
+  BE --> EL
+  BE --> OAI
+  BE --> SMTP
+  BE --> FF
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I
@@ -125,6 +136,12 @@ flowchart LR
 | `install-sideload.ps1` | Wait for full boot, install, launch |
 | `launch-on-emulator.ps1` | Install if missing + launch |
 | `build-release.ps1` | Signed `release\NoteVault-release.aab` + `.apk` |
+| `npm run desktop:win` | Windows `NoteVault-Setup-<version>.exe` + `NoteVault-Portable-<version>.exe` in `builds\desktop` |
+| `npm run desktop:linux` | Linux `NoteVault-<version>-linux-x64.tar.gz` in `builds\desktop` |
+| `npm run cap:sync:ios` | Copy web files into `ios/` and set the iOS origin (`capacitor://app.voicevault.xyz`) |
+| Codemagic workflows | iOS simulator `.zip`, iOS VNC live test, signed iOS `.ipa` (TestFlight), macOS `.dmg` + Linux `.AppImage` |
+
+All current build files are collected in `builds\` (git-ignored); `builds\README.txt` lists each file.
 
 **Signing**: `android-signing\notevault-upload.jks` + `keystore.properties` (password). Referenced by `android\app\build.gradle`. Ignored by `.gitignore`. **Back up both files off this PC.**
 
@@ -146,13 +163,13 @@ flowchart LR
 - **In-app account deletion** (not implemented yet — required).
 - 512×512 icon, feature graphic, screenshots; replace the default Capacitor launcher icon.
 
-### Apple (future)
-- Add `@capacitor/ios` (`npx cap add ios`) in this same project.
-- Build on a Mac or cloud Mac (e.g. Codemagic); Apple Developer Program ($99/yr).
-- Add microphone usage description; account deletion also required.
+### Apple
+- Done: `@capacitor/ios` with Swift Package Manager, microphone text, App-Bound Domains, and the `app.voicevault.xyz` origin so login cookies work (verified on a Codemagic iPhone simulator, 2026-09-30).
+- To publish: Apple Developer Program ($99/yr), App Store Connect API key in Codemagic, then the `ios-release` workflow; account deletion is required here too.
 
-### Desktop (future)
-- Electron or Tauri wrapper in this same project for Windows `.exe`, Linux AppImage/.deb/Flatpak; Steam possible but a poor fit.
+### Desktop
+- Done: Electron 44 + electron-builder. Windows installer and portable `.exe`, Linux `.tar.gz` (built on Windows), macOS `.dmg` and Linux `.AppImage` (built on Codemagic).
+- Not code-signed yet: Windows SmartScreen and macOS Gatekeeper show a warning on first run. Signing needs a Windows code-signing certificate and an Apple Developer ID.
 
 ## 10) Known constraints
 
@@ -163,8 +180,9 @@ flowchart LR
 
 ## 11) Open reminders
 
-- **Login screenshot**: not captured yet (the app stayed logged in). Take it the next time the login screen appears and add it to section 1.1.
-- **iOS backend access**: done 2026-09-29 — backend CORS allows `capacitor://localhost` (web commit `6cd6b2c`); iOS uses App-Bound Domains (`WKAppBoundDomains` for voicevault.xyz + `limitsNavigationsToAppBoundDomains`) so WKWebView keeps the login cookie. **Not yet verified on iOS** — test login/notes/audio in Codemagic App Preview or a simulator; if login still fails, fall back to Capacitor native HTTP (`CapacitorHttp`).
+- **Login screenshot**: take it the next time the login screen appears in the app and add it to section 1.1.
+- **iOS login**: fixed and verified 2026-09-30 (WKWebView blocked the session cookie as third-party; the iOS app now loads from `capacitor://app.voicevault.xyz`).
+- **iPhone recording and voice search**: test on a physical iPhone (iOS 18.4+). The cloud simulator has no microphone, and the app records WebM only; older iOS would need an MP4 fallback.
 - **Panel close (×) buttons**: work with a mouse on the emulator, but automated taps did not register. Test on a physical Android phone before release.
 
 ## 12) Speeding up first search

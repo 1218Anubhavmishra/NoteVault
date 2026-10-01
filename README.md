@@ -38,12 +38,12 @@ open ios/App/App.xcodeproj
 ```powershell
 npm run desktop         # opens NoteVault in a desktop window
 npm run desktop:win     # builds/desktop: NoteVault-Setup-<version>.exe + NoteVault-Portable-<version>.exe
-npm run desktop:linux   # builds/desktop: NoteVault-<version>-linux-x64.tar.gz (+ .AppImage if Windows Developer Mode is on)
+npm run desktop:linux   # builds/desktop: NoteVault-<version>-linux-x64.tar.gz (the AppImage is built by the Codemagic macos-desktop workflow)
 ```
 
 `electron/main.cjs` serves `public/` at `https://localhost` (the same origin as the Android app), so it talks to the live backend with no server changes. electron-builder packages only `electron/` and `public/`. The installers are not code-signed, so Windows SmartScreen warns on first run (More info > Run anyway).
 
-macOS: run the Codemagic workflow **macOS desktop app (unsigned .dmg)** (`npm run desktop:mac` only works on a Mac). The .dmg is universal (Apple silicon + Intel) and unsigned: right-click the app > Open the first time.
+macOS and Linux AppImage: run the Codemagic workflow **macOS desktop app (unsigned .dmg) + Linux AppImage** (`npm run desktop:mac` only works on a Mac, and the AppImage packing tool doesn't exist for Windows). The .dmg is universal (Apple silicon + Intel) and unsigned: right-click the app > Open the first time.
 
 ---
 
