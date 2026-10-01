@@ -5,6 +5,7 @@
   "description": "NoteVault: app version of voiceVault (Android/iOS via Capacitor, desktop via Electron). Record audio notes and search across them.",
   "type": "module",
   "main": "electron/main.cjs",
+  "desktopName": "notevault.desktop",
   "author": "Anubhav Mishra",
   "engines": {
     "node": ">=20"
@@ -18,18 +19,21 @@
     "cap:sync:ios": "npx cap sync ios && node ios-config.mjs",
     "desktop": "electron electron/main.cjs",
     "desktop:win": "electron-builder --win",
-    "desktop:mac": "electron-builder --mac"
+    "desktop:mac": "electron-builder --mac",
+    "desktop:linux": "electron-builder --linux"
   },
   "build": {
     "appId": "xyz.voicevault.app",
     "productName": "NoteVault",
     "directories": { "output": "builds/desktop" },
     "files": ["electron/**", "public/**", "package.json", "!node_modules/**"],
+    "npmRebuild": false,
     "win": { "target": ["nsis", "portable"] },
     "nsis": { "artifactName": "NoteVault-Setup-${version}.${ext}" },
     "portable": { "artifactName": "NoteVault-Portable-${version}.${ext}" },
     "mac": { "target": [{ "target": "dmg", "arch": ["universal"] }], "category": "public.app-category.productivity", "identity": null },
-    "dmg": { "artifactName": "NoteVault-${version}-mac.${ext}" }
+    "dmg": { "artifactName": "NoteVault-${version}-mac.${ext}" },
+    "linux": { "target": ["AppImage", "tar.gz"], "category": "Office", "maintainer": "Anubhav Mishra", "artifactName": "NoteVault-${version}-linux-${arch}.${ext}" }
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
