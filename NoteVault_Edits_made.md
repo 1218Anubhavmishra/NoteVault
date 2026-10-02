@@ -27,6 +27,7 @@ title: NoteVault — Edits made
   - Documented both variables in `.env.example`.
 - **Empty library box**: "No saved notes yet" box restored to a light background with dark text.
 - **Speaker labels and sound tags (2026-10-02)**: note transcription asks ElevenLabs Scribe for speakers (`diarize`) and sound tags (`tag_audio_events`). Transcripts are written as "Speaker N: …" lines, each segment stores its speaker (new `note_segments.speaker` column), and speakers can be renamed in the "Speakers" box after Full preview or in Edit mode (`PATCH /api/notes/:id` with `speakers`).
+- **Titles (2026-10-02)**: automatic titles skip speaker labels and sound tags and end with the detected speakers ("Topic — Speaker 1, Speaker 2"); renaming a speaker updates the title.
 - **Account deletion (2026-10-02)**: Profile → Delete account; `POST /api/auth/delete-account` checks the password, deletes all the user's data and audio, and signs out. Other devices are signed out because `requireUser` checks the account still exists.
 - **MP4 fallback (2026-10-02)**: recording falls back to MP4/AAC when WebM isn't supported; files are named `.m4a`. In this project the audio download keeps using `vvApiUrl()`.
 
