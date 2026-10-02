@@ -7,9 +7,9 @@ It lives in its own folder (`D:\Projects\NoteVault`), separate from the web proj
 
 ## Screenshot
 
-![NoteVault home screen on the Android emulator](screenshots/notevault-01-home.png)
+![NoteVault home screen on the Android emulator](../images/notevault-01-home.png)
 
-More screenshots are in `NoteVault_project-report.md` and the `screenshots/` folder.
+More screenshots are in `NoteVault_project-report.md` and the `images/` folder.
 
 ## Core Features
 - **In-app recording**: Uses the phone microphone (WebView `MediaRecorder`; `RECORD_AUDIO` permission). Records WebM/Opus, or MP4/AAC where WebM isn't supported.

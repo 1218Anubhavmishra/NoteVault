@@ -4,11 +4,11 @@ NoteVault is the **mobile app build of [voiceVault](https://github.com/1218Anubh
 
 - Package id: `xyz.voicevault.app` · Target: Android 16 (API 36), min Android 6 (API 23)
 - Backend / website changes belong in the voiceVault repo; this repo holds the app shell and app-specific frontend tweaks (`public/mobile-api.js`, API URL handling, auto-sync, system-bar spacing).
-- Details: `NoteVault_project-report.md` · Change log: `NoteVault_Edits_made.md`
+- Details: `docs/NoteVault_project-report.md` · Change log: `docs/NoteVault_Edits_made.md`
 
 | Home | Note | Search |
 | :-: | :-: | :-: |
-| ![Home](screenshots/notevault-01-home.png) | ![Note](screenshots/notevault-02-note-open.png) | ![Search](screenshots/notevault-03-search.png) |
+| ![Home](images/notevault-01-home.png) | ![Note](images/notevault-02-note-open.png) | ![Search](images/notevault-03-search.png) |
 
 ## Build the Android app (Windows)
 

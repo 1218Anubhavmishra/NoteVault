@@ -16,11 +16,11 @@ Captured from the debug build running on the `flutter_emulator` virtual device (
 
 | Saved notes (home) | Note expanded | Search result |
 | :-: | :-: | :-: |
-| ![NoteVault home screen with saved notes](screenshots/notevault-01-home.png) | ![Expanded note with playback, edit, download and delete](screenshots/notevault-02-note-open.png) | ![Search for "Eyes" with matching words highlighted](screenshots/notevault-03-search.png) |
+| ![NoteVault home screen with saved notes](../images/notevault-01-home.png) | ![Expanded note with playback, edit, download and delete](../images/notevault-02-note-open.png) | ![Search for "Eyes" with matching words highlighted](../images/notevault-03-search.png) |
 
 | New note | Help |
 | :-: | :-: |
-| ![New note panel with record button and audio file picker](screenshots/notevault-04-add-new.png) | ![In-app help text](screenshots/notevault-05-help.png) |
+| ![New note panel with record button and audio file picker](../images/notevault-04-add-new.png) | ![In-app help text](../images/notevault-05-help.png) |
 
 ## 2) Scope (what it is / isn't)
 

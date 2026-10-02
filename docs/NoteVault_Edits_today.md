@@ -21,7 +21,7 @@ The same changes were made in voiceVault (shared frontend and backend) and copie
 - **Signing key**: created `android-signing\notevault-upload.jks` + `keystore.properties` and wired release signing into Gradle; folder is git-ignored and must be backed up.
 - **Release build**: new `build-release.ps1` produces `release\NoteVault-release.aab` (Play upload) and `release\NoteVault-release.apk` (direct install), both signature-verified; version 1.0 (code 1).
 - **Reports**: renamed the copied voiceVault reports to `NoteVault_*.md` and rewrote them for the Android app.
-- **Screenshots**: captured 5 emulator screenshots into `screenshots/` (home, expanded note, search, new note, help) and added them to the reports.
+- **Screenshots**: captured 5 emulator screenshots into `images/` (home, expanded note, search, new note, help) and added them to the reports.
 - **Bar spacing fix**: content no longer runs under the status bar / navigation bar (native margins + 5 px app-only padding + matching bar colour); screenshots retaken after the fix.
 - **First-search speed**: backend now warms the embedding model on start, the Docker image includes the model, and chunks are embedded after transcription before the note is saved as ready (web commit `e44a5b0`, pushed; copied here).
 - **GitHub**: pushed to `1218Anubhavmishra/NoteVault`, made public on 2026-09-29 (README marks it as the app version of voiceVault; signing key, `.env`, APK/AAB excluded).
