@@ -12,11 +12,12 @@ It lives in its own folder (`D:\Projects\NoteVault`), separate from the web proj
 More screenshots are in `NoteVault_project-report.md` and the `screenshots/` folder.
 
 ## Core Features
-- **In-app recording**: Uses the phone microphone (WebView `MediaRecorder`; `RECORD_AUDIO` permission).
+- **In-app recording**: Uses the phone microphone (WebView `MediaRecorder`; `RECORD_AUDIO` permission). Records WebM/Opus, or MP4/AAC where WebM isn't supported.
 - **Cloud storage**: Notes and audio are stored by the live backend (`https://api.voicevault.xyz`) in Render PostgreSQL — not on the phone.
 - **Transcription**: Done on the server (ElevenLabs Scribe by default, or local faster-whisper), with timestamped segments.
+- **Speaker labels and sound tags**: note transcripts mark who spoke each line ("Speaker 1:", "Speaker 2:") and tag sounds such as laughter or music. Speakers can be renamed before saving and in Edit mode.
 - **Search**: Text and voice search, hybrid keyword + semantic retrieval, natural-language and date filters.
-- **Accounts**: Email/password login, forgot-password by email OTP, profile + avatar.
+- **Accounts**: Email/password login, forgot-password by email OTP, profile + avatar, in-app account deletion (needed for Google Play and the App Store).
 - **Auto-sync**: The saved-notes list re-checks the server every 15 seconds (and when the app returns to the foreground) and re-renders only if something changed.
 - **Organisation**: Starred notes pinned to the top, folders, tags, saved searches.
 
@@ -29,7 +30,7 @@ More screenshots are in `NoteVault_project-report.md` and the `screenshots/` fol
 
 ### Technology and build map
 
-The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps and language detection; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
+The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps, language detection, who spoke each line, and sound tags such as laughter or music; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
 
 ```mermaid
 flowchart LR
@@ -39,7 +40,7 @@ flowchart LR
   end
 
   subgraph External["External services used by the backend"]
-    EL["ElevenLabs Scribe<br/>speech-to-text (transcription)"]
+    EL["ElevenLabs Scribe<br/>speech-to-text, speaker labels,<br/>sound tags (laughter, music)"]
     OAI["OpenAI<br/>AI note titles, quick answers"]
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]

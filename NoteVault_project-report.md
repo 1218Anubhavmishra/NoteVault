@@ -43,7 +43,9 @@ Changes to the backend are made and pushed in the **web project**; NoteVault onl
 
 ### Notes
 - Record audio in the app (microphone permission) and save as a note.
+- Recording uses WebM/Opus, or MP4/AAC on devices without WebM (older iPhones).
 - Server-side transcription with timestamped segments; notes show `processing` → `ready` (or `error`).
+- Speaker labels ("Speaker 1:", "Speaker 2:") and sound tags such as "(laughter)" or "(music)"; speakers can be renamed after Full preview and in Edit mode.
 - Play full audio or individual segments; download audio.
 - Edit title/transcript, delete, retry; star and pin to the top.
 - Folders, tags, saved searches.
@@ -56,6 +58,7 @@ Changes to the backend are made and pushed in the **web project**; NoteVault onl
 ### Accounts
 - Register / login with email + password; forgot-password via email OTP.
 - Profile name and avatar.
+- Delete account (Profile, password required): removes the account, all notes, audio and the avatar, and signs out every device.
 
 ### App-specific
 - **Auto-sync**: every 15 s (and on returning to the app) the note list is compared with the server and re-rendered only when changed; paused while searching, editing, or playing audio.
@@ -77,7 +80,7 @@ Changes to the backend are made and pushed in the **web project**; NoteVault onl
 
 ### Technology and build map
 
-The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps and language detection; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
+The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps, language detection, who spoke each line, and sound tags such as laughter or music; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
 
 ```mermaid
 flowchart LR
@@ -87,7 +90,7 @@ flowchart LR
   end
 
   subgraph External["External services used by the backend"]
-    EL["ElevenLabs Scribe<br/>speech-to-text (transcription)"]
+    EL["ElevenLabs Scribe<br/>speech-to-text, speaker labels,<br/>sound tags (laughter, music)"]
     OAI["OpenAI<br/>AI note titles, quick answers"]
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
@@ -154,18 +157,20 @@ All current build files are collected in `builds\` (git-ignored); `builds\README
 - Delete / add a note on the website → app updates within ~15 s without relaunch.
 - Play audio, play a segment, download audio.
 - Log out / log in again.
+- Save a note with two voices → "Speaker 1" / "Speaker 2" labels; rename one in Edit mode.
+- Delete a test account from Profile → it can no longer log in.
 
 ## 9) Publishing checklist
 
 ### Google Play
 - Play Console account ($25 one-time); new personal accounts need a 12-tester, 14-day closed test.
 - Privacy policy URL; Data safety form (audio, email, notes).
-- **In-app account deletion** (not implemented yet — required).
+- In-app account deletion: done (Profile → Delete account, 2026-10-02). The Data safety form should mention it.
 - 512×512 icon, feature graphic, screenshots; replace the default Capacitor launcher icon.
 
 ### Apple
 - Done: `@capacitor/ios` with Swift Package Manager, microphone text, App-Bound Domains, and the `app.voicevault.xyz` origin so login cookies work (verified on a Codemagic iPhone simulator, 2026-09-30).
-- To publish: Apple Developer Program ($99/yr), App Store Connect API key in Codemagic, then the `ios-release` workflow; account deletion is required here too.
+- To publish: Apple Developer Program ($99/yr), App Store Connect API key in Codemagic, then the `ios-release` workflow. In-app account deletion (required by Apple too) is done.
 
 ### Desktop
 - Done: Electron 44 + electron-builder. Windows installer and portable `.exe`, Linux `.tar.gz` (built on Windows), macOS `.dmg` and Linux `.AppImage` (built on Codemagic).
@@ -182,7 +187,7 @@ All current build files are collected in `builds\` (git-ignored); `builds\README
 
 - **Login screenshot**: take it the next time the login screen appears in the app and add it to section 1.1.
 - **iOS login**: fixed and verified 2026-09-30 (WKWebView blocked the session cookie as third-party; the iOS app now loads from `capacitor://app.voicevault.xyz`).
-- **iPhone recording and voice search**: test on a physical iPhone (iOS 18.4+). The cloud simulator has no microphone, and the app records WebM only; older iOS would need an MP4 fallback.
+- **iPhone recording and voice search**: test on a physical iPhone. The cloud simulator has no microphone. The app records WebM where supported and falls back to MP4 (added 2026-10-02) on older iOS; both paths are untested on a device.
 - **Panel close (×) buttons**: work with a mouse on the emulator, but automated taps did not register. Test on a physical Android phone before release.
 
 ## 12) Speeding up first search

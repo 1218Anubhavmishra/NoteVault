@@ -26,6 +26,9 @@ title: NoteVault — Edits made
   - CORS restricted to an allowlist (voicevault.xyz domains, `https://localhost`, local dev) plus optional `VOICEVAULT_CORS_ORIGINS`.
   - Documented both variables in `.env.example`.
 - **Empty library box**: "No saved notes yet" box restored to a light background with dark text.
+- **Speaker labels and sound tags (2026-10-02)**: note transcription asks ElevenLabs Scribe for speakers (`diarize`) and sound tags (`tag_audio_events`). Transcripts are written as "Speaker N: …" lines, each segment stores its speaker (new `note_segments.speaker` column), and speakers can be renamed in the "Speakers" box after Full preview or in Edit mode (`PATCH /api/notes/:id` with `speakers`).
+- **Account deletion (2026-10-02)**: Profile → Delete account; `POST /api/auth/delete-account` checks the password, deletes all the user's data and audio, and signs out. Other devices are signed out because `requireUser` checks the account still exists.
+- **MP4 fallback (2026-10-02)**: recording falls back to MP4/AAC when WebM isn't supported; files are named `.m4a`. In this project the audio download keeps using `vvApiUrl()`.
 
 ## App-specific frontend fixes
 
@@ -52,7 +55,7 @@ title: NoteVault — Edits made
 
 ## Technology and build map (2026-10-01)
 
-The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps and language detection; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
+The voiceVault website and the NoteVault apps share one frontend (`public/`) and one backend (`api.voicevault.xyz`). Each build wraps the same frontend with a different technology. The app wrappers (Capacitor, Electron) live in the NoteVault project (`D:\Projects\NoteVault`, GitHub `1218Anubhavmishra/NoteVault`). The backend calls **ElevenLabs Scribe** to turn recorded audio into text (word timestamps, language detection, who spoke each line, and sound tags such as laughter or music; `server/elevenlabs-stt-vv.js`, key `ELEVENLABS_API_KEY`). A local faster-whisper model is an optional alternative (`VOICEVAULT_STT_PROVIDER=whisper`). OpenAI generates note titles and quick answers when `OPENAI_API_KEY` is set, SMTP email sends password-reset codes, and ffmpeg prepares audio before transcription. Search embeddings run locally on the server (transformers.js), so search needs no external API.
 
 ```mermaid
 flowchart LR
@@ -62,7 +65,7 @@ flowchart LR
   end
 
   subgraph External["External services used by the backend"]
-    EL["ElevenLabs Scribe<br/>speech-to-text (transcription)"]
+    EL["ElevenLabs Scribe<br/>speech-to-text, speaker labels,<br/>sound tags (laughter, music)"]
     OAI["OpenAI<br/>AI note titles, quick answers"]
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
