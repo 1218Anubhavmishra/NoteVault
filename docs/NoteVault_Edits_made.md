@@ -30,6 +30,11 @@ title: NoteVault — Edits made
 - **Titles (2026-10-02)**: automatic titles skip speaker labels and sound tags and end with the detected speakers ("Topic - Speaker 1, Speaker 2"); renaming a speaker updates the title.
 - **Account deletion (2026-10-02)**: Profile → Delete account; `POST /api/auth/delete-account` checks the password, deletes all the user's data and audio, and signs out. Other devices are signed out because `requireUser` checks the account still exists.
 - **MP4 fallback (2026-10-02)**: recording falls back to MP4/AAC when WebM isn't supported; files are named `.m4a`. In this project the audio download keeps using `vvApiUrl()`.
+- **Login limit (2026-10-02)**: 3 failed logins per email, then a 30 s block (HTTP 429 `too_many_attempts` with `retry_after`), repeating; the login form counts down. Also applied to the reset code and the delete-account password.
+- **Offline recording (2026-10-02)**: offline saves go to IndexedDB and upload through `POST /api/notes` when the connection returns (also every 60 s and at login). The last session user is cached so the app can open offline.
+- **Reminders (2026-10-02)**: new `notes.reminder_at` column and `GET /api/reminders`; notes offer a Google Calendar link and an `.ics` file. The apps schedule phone notifications with `@capacitor/local-notifications` (added to `package.json`, synced to Android and iOS).
+- **Export (2026-10-02)**: `GET /api/export/notes.zip` (`archiver`) with title-named `.txt` and audio files; the Profile button uses `vvApiUrl()` here.
+- **Search highlight, Newest label, job titles (2026-10-02)**: searched words are highlighted directly (the "eyes" bug); the newest note shows a "Newest" label; background-job titles strip speaker labels read from the transcript.
 
 ## App-specific frontend fixes
 
@@ -61,21 +66,22 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 ```mermaid
 flowchart LR
   subgraph Shared["Shared code"]
-    FE["Frontend: public/<br/>HTML + CSS + JavaScript"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js)"]
+    FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
   end
 
-  subgraph External["External services used by the backend"]
+  subgraph External["External services"]
     EL["ElevenLabs Scribe<br/>speech-to-text, speaker labels,<br/>sound tags (laughter, music)"]
     OAI["OpenAI<br/>AI note titles, quick answers"]
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
+    CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7<br/>+ Xcode, Swift Package Manager"]
+    CAPA["Capacitor 7 + Local Notifications<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications<br/>+ Xcode, Swift Package Manager"]
     ELE["Electron 44<br/>+ electron-builder"]
   end
 
@@ -92,6 +98,7 @@ flowchart LR
   BE --> OAI
   BE --> SMTP
   BE --> FF
+  FE -.-> CAL
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I

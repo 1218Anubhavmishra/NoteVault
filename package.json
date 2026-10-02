@@ -25,22 +25,60 @@
   "build": {
     "appId": "xyz.voicevault.app",
     "productName": "NoteVault",
-    "directories": { "output": "builds/desktop" },
-    "files": ["electron/**", "public/**", "package.json", "!node_modules/**"],
+    "directories": {
+      "output": "builds/desktop"
+    },
+    "files": [
+      "electron/**",
+      "public/**",
+      "package.json",
+      "!node_modules/**"
+    ],
     "npmRebuild": false,
-    "win": { "target": ["nsis", "portable"] },
-    "nsis": { "artifactName": "NoteVault-Setup-${version}.${ext}" },
-    "portable": { "artifactName": "NoteVault-Portable-${version}.${ext}" },
-    "mac": { "target": [{ "target": "dmg", "arch": ["universal"] }], "category": "public.app-category.productivity", "identity": null },
-    "dmg": { "artifactName": "NoteVault-${version}-mac.${ext}" },
-    "linux": { "target": ["tar.gz"], "category": "Office", "maintainer": "Anubhav Mishra", "artifactName": "NoteVault-${version}-linux-${arch}.${ext}" }
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "artifactName": "NoteVault-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "NoteVault-Portable-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "identity": null
+    },
+    "dmg": {
+      "artifactName": "NoteVault-${version}-mac.${ext}"
+    },
+    "linux": {
+      "target": [
+        "tar.gz"
+      ],
+      "category": "Office",
+      "maintainer": "Anubhav Mishra",
+      "artifactName": "NoteVault-${version}-linux-${arch}.${ext}"
+    }
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
     "@capacitor/core": "^7.2.0",
     "@capacitor/ios": "^7.6.9",
+    "@capacitor/local-notifications": "^7.0.7",
     "@pinecone-database/pinecone": "^7.2.0",
     "@xenova/transformers": "^2.17.2",
+    "archiver": "^7.0.1",
     "bcryptjs": "^3.0.2",
     "cookie-session": "^2.1.0",
     "cors": "^2.8.5",

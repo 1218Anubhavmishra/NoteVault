@@ -17,12 +17,16 @@ More screenshots are in `NoteVault_project-report.md` and the `images/` folder.
 - **Transcription**: Done on the server (ElevenLabs Scribe by default, or local faster-whisper), with timestamped segments.
 - **Speaker labels and sound tags**: note transcripts mark who spoke each line ("Speaker 1:", "Speaker 2:") and tag sounds such as laughter or music. Speakers can be renamed before saving and in Edit mode.
 - **Search**: Text and voice search, hybrid keyword + semantic retrieval, natural-language and date filters.
-- **Accounts**: Email/password login, forgot-password by email OTP, profile + avatar, in-app account deletion (needed for Google Play and the App Store).
+- **Accounts**: Email/password login, forgot-password by email OTP, profile + avatar, in-app account deletion (needed for Google Play and the App Store). After 3 wrong passwords, login waits 30 seconds (with a countdown) before the next 3 tries.
+- **Record without internet**: recordings saved offline wait on the device and upload when the connection returns.
+- **Reminders**: a note can have a reminder date and time; the Android and iOS apps show a phone notification, and every build offers "Add to Google Calendar" and an `.ics` file.
+- **Export all notes**: one `.zip` with every note's transcript and audio, named after the note titles (Profile, beside Edit).
+- **Newest label**: the most recent note is marked "Newest" at the bottom right of its card.
 - **Auto-sync**: The saved-notes list re-checks the server every 15 seconds (and when the app returns to the foreground) and re-renders only if something changed.
 - **Organisation**: Starred notes pinned to the top, folders, tags, saved searches.
 
 ## Tech Stack
-- **App shell**: Capacitor 7 (Android WebView wrapping `public/`)
+- **App shell**: Capacitor 7 (Android WebView wrapping `public/`), with the Local Notifications plugin for reminders
 - **Frontend**: Vanilla HTML/CSS/JS in `public/` (copied from the web project, with app-specific API routing)
 - **API routing**: `public/mobile-api.js` rewrites `/api/*` requests to `https://api.voicevault.xyz`
 - **Backend (shared with website)**: Node.js + Express on Render (Docker, Singapore), PostgreSQL on Render
@@ -35,21 +39,22 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 ```mermaid
 flowchart LR
   subgraph Shared["Shared code"]
-    FE["Frontend: public/<br/>HTML + CSS + JavaScript"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js)"]
+    FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
   end
 
-  subgraph External["External services used by the backend"]
+  subgraph External["External services"]
     EL["ElevenLabs Scribe<br/>speech-to-text, speaker labels,<br/>sound tags (laughter, music)"]
     OAI["OpenAI<br/>AI note titles, quick answers"]
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
+    CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7<br/>+ Xcode, Swift Package Manager"]
+    CAPA["Capacitor 7 + Local Notifications<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications<br/>+ Xcode, Swift Package Manager"]
     ELE["Electron 44<br/>+ electron-builder"]
   end
 
@@ -66,6 +71,7 @@ flowchart LR
   BE --> OAI
   BE --> SMTP
   BE --> FF
+  FE -.-> CAL
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I
@@ -87,6 +93,7 @@ flowchart LR
 - `android-signing/`: Upload key + password (**secret; never commit; back up**)
 - `release/`: Signed release builds (AAB + APK)
 - `*.ps1`: Build / emulator / install scripts
+- `docs/`: reports, `.docx` copies and notes; `images/`: screenshots and the technology chart image
 
 ## Build & Run (Windows)
 ### Debug build on the emulator

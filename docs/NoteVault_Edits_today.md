@@ -2,6 +2,21 @@
 title: NoteVault — Edits today (2026-09-28 to 2026-10-02)
 ---
 
+## 2026-10-02 (later): login limit, offline recording, reminders, export, search fix, tidy-up
+
+The same changes were made in voiceVault (shared frontend and backend) and copied here.
+
+- **Login limit**: after 3 wrong passwords for an email, login is blocked for 30 seconds, then a fresh round of 3 attempts starts. The error says how many attempts are left, and the login form counts down while blocked. The same limit covers the password-reset code and the delete-account password.
+- **Record without internet**: with no connection, Save keeps the recording on the device (IndexedDB) and a banner shows how many are waiting. They upload and transcribe on their own when the connection returns. The app opens offline using the last signed-in user, so it needs one earlier online login.
+- **Reminders and calendar**: a note can have a reminder date and time (new note form and Edit mode). The note shows "Add to Google Calendar" and "Download .ics". In the Android and iOS apps the phone shows a notification at that time, using the new `@capacitor/local-notifications` plugin (inexact alarms, so it may be a few minutes late). Desktop apps offer the calendar link and `.ics` only.
+- **Export all notes**: Profile has an "Export all notes" button beside Edit. It downloads one `.zip` with each note's transcript (`.txt`) and audio, named after the note title. In this project the link uses `vvApiUrl()`.
+- **"Eyes" search fix**: search now highlights the searched words themselves instead of a trimmed part of the segment, which cut off words at the edges (such as "eyes").
+- **Newest label**: the most recently created note has a "Newest" label at the bottom right of its card. The order of notes is unchanged.
+- **Titles from the background job**: speaker labels are also read from the transcript lines, so job-processed notes get "Topic - Speaker 1" titles.
+- **Error text**: login and form errors are dark red (they were very faint pink).
+- **Folders**: reports, `.docx` and `.txt` files are in `docs/`; screenshots and the chart image in `images/`.
+- **Builds**: Android release + debug, Windows and Linux rebuilt with these changes; run the Codemagic workflows for iOS, macOS and the AppImage.
+
 ## 2026-10-02: speaker labels, sound tags, account deletion, MP4 fallback
 
 The same changes were made in voiceVault (shared frontend and backend) and copied here.
@@ -42,21 +57,22 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 ```mermaid
 flowchart LR
   subgraph Shared["Shared code"]
-    FE["Frontend: public/<br/>HTML + CSS + JavaScript"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js)"]
+    FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
   end
 
-  subgraph External["External services used by the backend"]
+  subgraph External["External services"]
     EL["ElevenLabs Scribe<br/>speech-to-text, speaker labels,<br/>sound tags (laughter, music)"]
     OAI["OpenAI<br/>AI note titles, quick answers"]
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
+    CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7<br/>+ Xcode, Swift Package Manager"]
+    CAPA["Capacitor 7 + Local Notifications<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications<br/>+ Xcode, Swift Package Manager"]
     ELE["Electron 44<br/>+ electron-builder"]
   end
 
@@ -73,6 +89,7 @@ flowchart LR
   BE --> OAI
   BE --> SMTP
   BE --> FF
+  FE -.-> CAL
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I

@@ -46,6 +46,9 @@ Changes to the backend are made and pushed in the **web project**; NoteVault onl
 - Recording uses WebM/Opus, or MP4/AAC on devices without WebM (older iPhones).
 - Server-side transcription with timestamped segments; notes show `processing` → `ready` (or `error`).
 - Speaker labels ("Speaker 1:", "Speaker 2:") and sound tags such as "(laughter)" or "(music)"; speakers can be renamed after Full preview and in Edit mode.
+- Without internet, Save keeps the recording on the device; it uploads when the connection returns.
+- Reminders: a date and time per note, with a phone notification (Android/iOS), "Add to Google Calendar" and an `.ics` file.
+- The most recent note is marked "Newest" at the bottom right of its card.
 - Play full audio or individual segments; download audio.
 - Edit title/transcript, delete, retry; star and pin to the top.
 - Folders, tags, saved searches.
@@ -59,6 +62,8 @@ Changes to the backend are made and pushed in the **web project**; NoteVault onl
 - Register / login with email + password; forgot-password via email OTP.
 - Profile name and avatar.
 - Delete account (Profile, password required): removes the account, all notes, audio and the avatar, and signs out every device.
+- Login limit: after 3 wrong passwords, a 30-second wait with a countdown, then 3 more tries.
+- Export all notes (Profile, beside Edit): a `.zip` with each note's transcript and audio, named after the note title.
 
 ### App-specific
 - **Auto-sync**: every 15 s (and on returning to the app) the note list is compared with the server and re-rendered only when changed; paused while searching, editing, or playing audio.
@@ -85,21 +90,22 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 ```mermaid
 flowchart LR
   subgraph Shared["Shared code"]
-    FE["Frontend: public/<br/>HTML + CSS + JavaScript"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js)"]
+    FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
   end
 
-  subgraph External["External services used by the backend"]
+  subgraph External["External services"]
     EL["ElevenLabs Scribe<br/>speech-to-text, speaker labels,<br/>sound tags (laughter, music)"]
     OAI["OpenAI<br/>AI note titles, quick answers"]
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
+    CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7<br/>+ Xcode, Swift Package Manager"]
+    CAPA["Capacitor 7 + Local Notifications<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications<br/>+ Xcode, Swift Package Manager"]
     ELE["Electron 44<br/>+ electron-builder"]
   end
 
@@ -116,6 +122,7 @@ flowchart LR
   BE --> OAI
   BE --> SMTP
   BE --> FF
+  FE -.-> CAL
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I
@@ -178,7 +185,9 @@ All current build files are collected in `builds\` (git-ignored); `builds\README
 
 ## 10) Known constraints
 
-- Requires internet; no offline mode.
+- Needs internet for transcription, search and the notes list. Recordings can be saved offline and upload later, but only after one earlier online login.
+- Reminder notifications use inexact alarms (may be a few minutes late) and only work in the Android and iOS apps.
+- `.ics` and export downloads inside the Android app are untested on a phone.
 - Relies on Render backend + `VOICEVAULT_CROSS_SITE_COOKIES=1`.
 - Build warns that AGP 8.7.2 is older than compileSdk 36 (harmless).
 - The first search used to take ~40 s after a server restart (model download/load + lazy chunk embedding); fixed in section 12. Notes saved before the fix are still embedded on their first search.
@@ -188,6 +197,7 @@ All current build files are collected in `builds\` (git-ignored); `builds\README
 - **Login screenshot**: take it the next time the login screen appears in the app and add it to section 1.1.
 - **iOS login**: fixed and verified 2026-09-30 (WKWebView blocked the session cookie as third-party; the iOS app now loads from `capacitor://app.voicevault.xyz`).
 - **iPhone recording and voice search**: test on a physical iPhone. The cloud simulator has no microphone. The app records WebM where supported and falls back to MP4 (added 2026-10-02) on older iOS; both paths are untested on a device.
+- **Reminders on a phone**: create a reminder a few minutes ahead on a physical Android phone and iPhone, allow notifications, and check it arrives.
 - **Panel close (×) buttons**: work with a mouse on the emulator, but automated taps did not register. Test on a physical Android phone before release.
 
 ## 12) Speeding up first search
