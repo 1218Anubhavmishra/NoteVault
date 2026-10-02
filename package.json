@@ -18,9 +18,9 @@
     "android:install": "npx cap sync android && cd android && .\\gradlew.bat installDebug",
     "cap:sync:ios": "npx cap sync ios && node ios-config.mjs",
     "desktop": "electron electron/main.cjs",
-    "desktop:win": "electron-builder --win",
-    "desktop:mac": "electron-builder --mac",
-    "desktop:linux": "electron-builder --linux"
+    "desktop:win": "electron-builder --win --publish never",
+    "desktop:mac": "electron-builder --mac --publish never",
+    "desktop:linux": "electron-builder --linux --publish never"
   },
   "build": {
     "appId": "xyz.voicevault.app",

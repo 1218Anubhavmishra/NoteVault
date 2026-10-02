@@ -142,7 +142,7 @@ workflows:
       - name: Build macOS .dmg
         script: npm run desktop:mac
       - name: Build Linux AppImage
-        script: npx electron-builder --linux AppImage
+        script: npx electron-builder --linux AppImage --publish never
     artifacts:
       - builds/desktop/*.dmg
       - builds/desktop/*.AppImage
