@@ -2,6 +2,10 @@
 title: NoteVault — Edits today (2026-09-28 to 2026-10-02)
 ---
 
+## 2026-10-03: Newest label position
+
+- **Newest label**: moved to its own line under the note's download, transcript and delete buttons, so it no longer covers the delete button. Android, Windows and Linux builds refreshed.
+
 ## 2026-10-02 (later): login limit, offline recording, reminders, export, search fix, tidy-up
 
 The same changes were made in voiceVault (shared frontend and backend) and copied here.
