@@ -2,9 +2,11 @@
 title: NoteVault — Edits today (2026-09-28 to 2026-10-02)
 ---
 
-## 2026-10-03: Newest label position
+## 2026-10-03: Newest label position, profile icon buttons
 
-- **Newest label**: moved to its own line under the note's download, transcript and delete buttons, so it no longer covers the delete button. Android, Windows and Linux builds refreshed.
+- **Newest label**: moved to its own line under the note's download, transcript and delete buttons, so it no longer covers the delete button.
+- **Profile buttons**: Delete account, Export all notes and Edit profile are now one row of icon buttons (bin, download arrow, person with pencil); the delete confirmation opens below them. Edit Profile uses icons too: camera (change photo), × (cancel) and save. Tooltips keep the names.
+- Android, Windows and Linux builds refreshed.
 
 ## 2026-10-02 (later): login limit, offline recording, reminders, export, search fix, tidy-up
 

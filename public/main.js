@@ -204,6 +204,7 @@ const btnProfileEditEl = document.getElementById('btnProfileEdit');
 const btnProfileExportEl = document.getElementById('btnProfileExport');
 const btnProfileDeleteStartEl = document.getElementById('btnProfileDeleteStart');
 const profileDeleteConfirmEl = document.getElementById('profileDeleteConfirm');
+const profileDangerZoneEl = document.getElementById('profileDangerZone');
 const profileDeletePassEl = document.getElementById('profileDeletePass');
 const btnProfileDeleteCancelEl = document.getElementById('btnProfileDeleteCancel');
 const btnProfileDeleteConfirmEl = document.getElementById('btnProfileDeleteConfirm');
@@ -967,7 +968,8 @@ function showProfileViewMode() {
 
 function setProfileDeleteConfirmOpen(open) {
   if (profileDeleteConfirmEl) profileDeleteConfirmEl.hidden = !open;
-  if (btnProfileDeleteStartEl) btnProfileDeleteStartEl.hidden = !!open;
+  if (profileDangerZoneEl) profileDangerZoneEl.hidden = !open;
+  if (btnProfileDeleteStartEl) btnProfileDeleteStartEl.disabled = !!open;
   if (profileDeletePassEl) profileDeletePassEl.value = '';
   if (open) profileDeletePassEl?.focus();
 }
