@@ -31,7 +31,7 @@ Captured from the debug build running on the `flutter_emulator` virtual device (
 
 | | voiceVault (web) | NoteVault (Android) |
 | :-- | :-- | :-- |
-| Location | `C:\Users\anubh\.cursor\projects\empty-window\voiceVault` | `D:\Projects\NoteVault` |
+| Location | `D:\Projects\voiceVault` | `D:\Projects\NoteVault` |
 | Git | GitHub `1218Anubhavmishra/voiceVault` | GitHub `1218Anubhavmishra/NoteVault` (public) |
 | Frontend host | Vercel (`www.voicevault.xyz`) | Inside the APK (`https://localhost` in the WebView) |
 | Backend | Render (`api.voicevault.xyz`) | Same Render backend |
