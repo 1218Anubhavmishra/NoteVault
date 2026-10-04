@@ -2,6 +2,10 @@
 title: NoteVault — Edits today (2026-09-28 to 2026-10-02)
 ---
 
+## 2026-10-04: attempts and countdown on every limited screen
+
+- **Attempts and countdown**: the reset-password screen and the delete-account panel now behave like login: attempts left after each wrong try, then a live countdown with the button greyed out, then "You can try again now." The voiceVault web project moved to `D:\Projects\voiceVault`. Android, Windows and Linux builds refreshed.
+
 ## 2026-10-03: Newest label position, profile icon buttons
 
 - **Newest label**: moved to its own line under the note's download, transcript and delete buttons, so it no longer covers the delete button.
