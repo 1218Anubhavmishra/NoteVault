@@ -51,6 +51,10 @@ title: NoteVault — Edits made
   - Theme: cream background (`#F4EFE4`, same as the page) behind the bars, with dark status/navigation icons (`colors.xml`, `styles.xml`).
   - `mobile-api.js` adds a `vv-native-app` class; `styles.css` adds 5 px extra top/bottom page padding in the app only (website unchanged).
 - **Build script**: `build-android.ps1` now stops when Gradle fails (previously it reported success and kept the old APK).
+- **Share a note (2026-10-07)**
+  - Share links point at `https://www.voicevault.xyz/api/share/<token>` in the apps (the app's own origin is `https://localhost`); `window.VV_API_BASE` from `mobile-api.js` decides this.
+  - `@capacitor/share` (7.0.4) provides More… (the system share sheet) on Android and iOS.
+  - Gmail and WhatsApp links open in the system: Electron passes `window.open` to the default browser, and the Capacitor apps navigate to the link so Android/iOS hand it to WhatsApp or Gmail.
 
 ## Release preparation (Google Play)
 
@@ -67,7 +71,7 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 flowchart LR
   subgraph Shared["Shared code"]
     FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver),<br/>public share links (/api/share)"]
   end
 
   subgraph External["External services"]
@@ -76,12 +80,13 @@ flowchart LR
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
     CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
+    SHR["Sharing<br/>Gmail, WhatsApp, copy, system share sheet<br/>(opened from a note's Share button)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7 + Local Notifications<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7 + Local Notifications<br/>+ Xcode, Swift Package Manager"]
+    CAPA["Capacitor 7 + Local Notifications + Share<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications + Share<br/>+ Xcode, Swift Package Manager"]
     ELE["Electron 44<br/>+ electron-builder"]
   end
 
@@ -99,6 +104,7 @@ flowchart LR
   BE --> SMTP
   BE --> FF
   FE -.-> CAL
+  FE -.-> SHR
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I

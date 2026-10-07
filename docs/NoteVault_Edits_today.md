@@ -2,6 +2,12 @@
 title: NoteVault — Edits today (2026-09-28 to 2026-10-02)
 ---
 
+## 2026-10-07: share a note
+
+- **Share button**: each note has a Share button that offers **Transcript**, **Audio** or **Both**, sent by **Copy**, **Gmail**, **WhatsApp** or **More…** (the phone's share menu, via the new `@capacitor/share` plugin).
+- Transcript is sent as text (long transcripts are shortened in Gmail and WhatsApp; Copy keeps everything). Audio and Both send a private `www.voicevault.xyz` link to a page where anyone with the link can play or download the recording; Both adds the transcript. On a phone, More… can attach the audio file itself.
+- **Stop sharing** switches off the note's links; deleting the note or the account does too. Android, Windows and Linux builds refreshed.
+
 ## 2026-10-04: attempts and countdown on every limited screen
 
 - **Attempts and countdown**: the reset-password screen and the delete-account panel now behave like login: attempts left after each wrong try, then a live countdown with the button greyed out, then "You can try again now." The voiceVault web project moved to `D:\Projects\voiceVault`. Android, Windows and Linux builds refreshed.
@@ -68,7 +74,7 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 flowchart LR
   subgraph Shared["Shared code"]
     FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver),<br/>public share links (/api/share)"]
   end
 
   subgraph External["External services"]
@@ -77,12 +83,13 @@ flowchart LR
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
     CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
+    SHR["Sharing<br/>Gmail, WhatsApp, copy, system share sheet<br/>(opened from a note's Share button)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7 + Local Notifications<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7 + Local Notifications<br/>+ Xcode, Swift Package Manager"]
+    CAPA["Capacitor 7 + Local Notifications + Share<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications + Share<br/>+ Xcode, Swift Package Manager"]
     ELE["Electron 44<br/>+ electron-builder"]
   end
 
@@ -100,6 +107,7 @@ flowchart LR
   BE --> SMTP
   BE --> FF
   FE -.-> CAL
+  FE -.-> SHR
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I
