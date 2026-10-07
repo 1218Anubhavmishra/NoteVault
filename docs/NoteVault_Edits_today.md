@@ -2,11 +2,12 @@
 title: NoteVault — Edits today (2026-09-28 to 2026-10-02)
 ---
 
-## 2026-10-07: share a note
+## 2026-10-07: share a note, app icon
 
 - **Share button**: each note has a Share button that offers **Transcript**, **Audio** or **Both**, sent by **Copy**, **Gmail**, **WhatsApp** or **More…** (the phone's share menu, via the new `@capacitor/share` plugin).
-- Transcript is sent as text (long transcripts are shortened in Gmail and WhatsApp; Copy keeps everything). Audio and Both send a private `www.voicevault.xyz` link to a page where anyone with the link can play or download the recording; Both adds the transcript. On a phone, More… can attach the audio file itself.
-- **Stop sharing** switches off the note's links; deleting the note or the account does too. Android, Windows and Linux builds refreshed.
+- Transcript is sent as text (long transcripts are shortened in Gmail and WhatsApp; Copy keeps everything). Audio and Both send the audio file itself (Both adds the transcript): on Android and iOS, Gmail and WhatsApp open the share menu with the file attached (saved first with the new `@capacitor/filesystem` plugin). The Windows and Mac apps open the system share menu with the file attached too (WhatsApp desktop, Outlook/Mail, Nearby Sharing and so on; Gmail isn't listed there because it's a website). The Linux app has no such menu, so it downloads the file and opens Gmail or WhatsApp to attach it; **Download** saves it directly. The website (voicevault.xyz) offers only Transcript, since a browser can't hand a file to WhatsApp Web or Gmail.
+- The first version (earlier the same day) sent a link to a public play-and-download page; that is removed.
+- **App icon**: the default Capacitor icon and splash are replaced by NoteVault's own icon (a note page where a sound wave turns into handwriting, an amber pen and a vault badge, on white). `npm run icons` regenerates every Android, iOS, desktop and website icon from `images/notevault-icon.svg`.
 
 ## 2026-10-04: attempts and countdown on every limited screen
 
@@ -74,7 +75,8 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 flowchart LR
   subgraph Shared["Shared code"]
     FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver),<br/>public share links (/api/share)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
+    ICON["App icon: images/notevault-icon.svg<br/>npm run icons (@capacitor/assets, sharp)<br/>icons, splash screens, favicon"]
   end
 
   subgraph External["External services"]
@@ -83,14 +85,14 @@ flowchart LR
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
     CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
-    SHR["Sharing<br/>Gmail, WhatsApp, copy, system share sheet<br/>(opened from a note's Share button)"]
+    SHR["Sharing<br/>Gmail, WhatsApp, copy, system share sheet<br/>(transcript; the audio file itself in the apps only)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7 + Local Notifications + Share<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7 + Local Notifications + Share<br/>+ Xcode, Swift Package Manager"]
-    ELE["Electron 44<br/>+ electron-builder"]
+    CAPA["Capacitor 7 + Local Notifications + Share + Filesystem<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications + Share + Filesystem<br/>+ Xcode, Swift Package Manager"]
+    ELE["Electron 44 + electron-builder<br/>share menu: electron-native-share (Windows),<br/>ShareMenu (macOS)"]
   end
 
   subgraph Builds["Build output, and where it's built"]
@@ -108,6 +110,10 @@ flowchart LR
   BE --> FF
   FE -.-> CAL
   FE -.-> SHR
+  ICON -.-> WEB
+  ICON -.-> CAPA
+  ICON -.-> CAPI
+  ICON -.-> ELE
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I

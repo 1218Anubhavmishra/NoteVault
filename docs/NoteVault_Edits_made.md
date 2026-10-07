@@ -52,9 +52,14 @@ title: NoteVault — Edits made
   - `mobile-api.js` adds a `vv-native-app` class; `styles.css` adds 5 px extra top/bottom page padding in the app only (website unchanged).
 - **Build script**: `build-android.ps1` now stops when Gradle fails (previously it reported success and kept the old APK).
 - **Share a note (2026-10-07)**
-  - Share links point at `https://www.voicevault.xyz/api/share/<token>` in the apps (the app's own origin is `https://localhost`); `window.VV_API_BASE` from `mobile-api.js` decides this.
-  - `@capacitor/share` (7.0.4) provides More… (the system share sheet) on Android and iOS.
-  - Gmail and WhatsApp links open in the system: Electron passes `window.open` to the default browser, and the Capacitor apps navigate to the link so Android/iOS hand it to WhatsApp or Gmail.
+  - Audio is shared as the file itself: `@capacitor/filesystem` (7.1.9) writes it to the cache folder (`share/<title>.<ext>`) and `@capacitor/share` (7.0.4) shares its URI; Android's FileProvider already covers `cache-path`. Gmail and WhatsApp open this share sheet with the file attached; More… opens it too.
+  - Desktop share menu: `electron/preload.cjs` exposes `window.vvDesktop` (`canShareFiles`, `share({title, text, file})`). The main process checks the caller is `https://localhost`, writes the file to `%TEMP%/NoteVault-share` (cleared on start, unsafe name characters replaced) and opens the Windows share sheet via `electron-native-share` 0.1.1 (WinRT `DataTransferManager`, prebuilt N-API binary, unpacked from the asar) or Electron's `ShareMenu` on macOS. Linux has no share sheet, so Gmail/WhatsApp download the file and open the compose link there; Electron passes `window.open` to the default browser. Transcript-only Gmail/WhatsApp links in the Capacitor apps navigate so Android/iOS hand them to the app.
+  - Audio and Both appear only when `vvCanShareAudio()` is true (Capacitor native, or `window.vvDesktop` in Electron); on the website the mode row is hidden and only the transcript is shared.
+  - The earlier public share links (`/api/share/<token>`) are removed from the server; the `note_shares` table is dropped on start.
+- **App icon (2026-10-07)**
+  - Sources: `images/notevault-icon.svg` (full icon, white background) and `images/notevault-icon-logo.svg` (artwork only).
+  - `npm run icons` (`scripts/build-icons.cjs`, `sharp` + dev dependency `@capacitor/assets`) writes `public/favicon.svg`, `public/icons/icon-{32,192,512}.png`, `public/apple-touch-icon.png`, `build/icon.png` (picked up by electron-builder) and all Android mipmaps/splashes (incl. night) and iOS AppIcon/splash images. The artwork is padded to 780/1024 so iOS corners and Android masks don't clip it; splash logo scale 0.45 (Android) / 1000 px wide (iOS).
+  - The Electron window uses `public/icons/icon-512.png`.
 
 ## Release preparation (Google Play)
 
@@ -71,7 +76,8 @@ The voiceVault website and the NoteVault apps share one frontend (`public/`) and
 flowchart LR
   subgraph Shared["Shared code"]
     FE["Frontend: public/<br/>HTML + CSS + JavaScript<br/>offline recording queue (IndexedDB)"]
-    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver),<br/>public share links (/api/share)"]
+    BE["Backend: server/<br/>Node.js + Express<br/>PostgreSQL, search embeddings<br/>(transformers.js), zip export (archiver)"]
+    ICON["App icon: images/notevault-icon.svg<br/>npm run icons (@capacitor/assets, sharp)<br/>icons, splash screens, favicon"]
   end
 
   subgraph External["External services"]
@@ -80,14 +86,14 @@ flowchart LR
     SMTP["Email (SMTP)<br/>password-reset codes"]
     FF["ffmpeg<br/>audio preprocessing"]
     CAL["Calendars<br/>Google Calendar link, .ics file<br/>(opened from a note's reminder)"]
-    SHR["Sharing<br/>Gmail, WhatsApp, copy, system share sheet<br/>(opened from a note's Share button)"]
+    SHR["Sharing<br/>Gmail, WhatsApp, copy, system share sheet<br/>(transcript; the audio file itself in the apps only)"]
   end
 
   subgraph Wrappers["Wrapper technology"]
     WEB["Browser<br/>(no wrapper)"]
-    CAPA["Capacitor 7 + Local Notifications + Share<br/>+ Gradle, Android SDK 36, JDK 22"]
-    CAPI["Capacitor 7 + Local Notifications + Share<br/>+ Xcode, Swift Package Manager"]
-    ELE["Electron 44<br/>+ electron-builder"]
+    CAPA["Capacitor 7 + Local Notifications + Share + Filesystem<br/>+ Gradle, Android SDK 36, JDK 22"]
+    CAPI["Capacitor 7 + Local Notifications + Share + Filesystem<br/>+ Xcode, Swift Package Manager"]
+    ELE["Electron 44 + electron-builder<br/>share menu: electron-native-share (Windows),<br/>ShareMenu (macOS)"]
   end
 
   subgraph Builds["Build output, and where it's built"]
@@ -105,6 +111,10 @@ flowchart LR
   BE --> FF
   FE -.-> CAL
   FE -.-> SHR
+  ICON -.-> WEB
+  ICON -.-> CAPA
+  ICON -.-> CAPI
+  ICON -.-> ELE
   FE --> WEB --> W
   FE --> CAPA --> A
   FE --> CAPI --> I
